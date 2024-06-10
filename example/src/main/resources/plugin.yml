@@ -1,0 +1,4 @@
+name: universes-example
+version: '1.0'
+main: net.radstevee.universes.example.ExamplePlugin
+api-version: '1.20'
