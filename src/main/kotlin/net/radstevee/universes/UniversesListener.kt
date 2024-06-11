@@ -1,16 +1,18 @@
 package net.radstevee.universes
 
-import net.radstevee.universes.Universes.universes
-import net.radstevee.universes.world.Universe
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.world.WorldUnloadEvent
 
+/**
+ * Listener for universes.
+ */
 object UniversesListener : Listener {
+    /**
+     * Used in case somebody wrongly unloaded a universe.
+     */
     @EventHandler
     fun onWorldUnload(event: WorldUnloadEvent) {
-        if (event.world.key in universes.map(Universe::id)) {
-            event.world.worldFolder.deleteRecursively()
-        }
+        Universes.getUniverseByActualId(event.world.key)?.unload()
     }
 }
