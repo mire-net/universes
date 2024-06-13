@@ -18,6 +18,9 @@ repositories {
 }
 
 dependencies {
+    implementation("org.incendo:cloud-paper:2.0.0-beta.7")
+    implementation("org.incendo:cloud-kotlin-extensions:2.0.0-rc.1")
+
     paperweight.paperDevBundle("1.20.6-R0.1-SNAPSHOT")
 }
 
