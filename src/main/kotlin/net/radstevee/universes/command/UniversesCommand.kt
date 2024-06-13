@@ -3,28 +3,15 @@ package net.radstevee.universes.command
 import net.kyori.adventure.text.Component.text
 import net.kyori.adventure.text.format.NamedTextColor.GREEN
 import net.kyori.adventure.text.format.NamedTextColor.RED
-import net.minecraft.core.BlockBox
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Vec3i
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.NbtIo
-import net.minecraft.nbt.NbtOps
-import net.minecraft.world.level.block.state.BlockState
 import net.radstevee.universes.Universes.commandManager
-import net.radstevee.universes.asExtremeties
 import net.radstevee.universes.command.parser.SchematicParser
-import net.radstevee.universes.encodeQuick
 import net.radstevee.universes.schematic.Schematic
 import net.radstevee.universes.schematic.SchematicManager
-import net.radstevee.universes.schematic.state.PaletteBlockState
-import net.radstevee.universes.toBlockPos
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
-import org.bukkit.craftbukkit.block.CraftBlockState
 import org.incendo.cloud.bukkit.parser.NamespacedKeyParser
 import org.incendo.cloud.bukkit.parser.location.LocationParser
 import org.incendo.cloud.kotlin.extension.buildAndRegister
-import kotlin.io.path.Path
 import kotlin.math.roundToInt
 
 /**
@@ -46,36 +33,10 @@ object UniversesCommand {
                     handler { ctx ->
                         val corner1 = ctx.get<Location>("corner1")
                         val corner2 = ctx.get<Location>("corner2")
-                        val corner1Pos = corner1.toBlockPos()
-                        val corner2Pos = corner2.toBlockPos()
                         val key = ctx.get<NamespacedKey>("key")
-                        val (min, max) = corner1Pos.asExtremeties(corner2Pos)
-                        val positions = BlockPos.betweenClosed(min, max)
-                        val palette = mutableListOf<BlockState>()
-                        val paletteBlockStates = positions.mapNotNull { pos ->
-                            val location = Location(corner1.world, pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
-                            val state = (location.block.state as CraftBlockState).handle
-                            if (state.isAir) {
-                                return@mapNotNull null
-                            } else {
-                                if (state !in palette) {
-                                    palette.add(state)
-                                }
-                                val relativePos = pos.subtract(min)
-                                val id = palette.indexOf(state)
-                                PaletteBlockState(relativePos, id)
-                            }
-                        }
-                        val blockBox = BlockBox(min, max)
-                        val size = Vec3i(blockBox.sizeX(), blockBox.sizeY(), blockBox.sizeZ())
-                        val schematic = Schematic(palette, paletteBlockStates, size)
-                        val nbt = Schematic.CODEC.encodeQuick(NbtOps.INSTANCE, schematic)
-                        val path = Path("schematics/${key.namespace}/${key.key}.nbt")
-                        path.parent.toFile().mkdirs()
-                        NbtIo.writeCompressed(nbt as CompoundTag, path)
-                        SchematicManager.put(key, schematic)
+                        SchematicManager.save(corner1, corner2, key)
 
-                        ctx.sender().sendMessage(text("Schematic saved to $path!", GREEN))
+                        ctx.sender().sendMessage(text("Schematic saved to schematics/${key.namespace}/${key.key}.nbt!", GREEN))
                     }
                 }
             }

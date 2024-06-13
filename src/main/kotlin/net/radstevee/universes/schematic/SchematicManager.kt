@@ -1,10 +1,21 @@
 package net.radstevee.universes.schematic
 
+import net.minecraft.core.BlockBox
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Vec3i
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtAccounter
 import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.NbtOps
+import net.minecraft.world.level.block.state.BlockState
+import net.radstevee.universes.asExtremeties
 import net.radstevee.universes.decodeQuick
+import net.radstevee.universes.encodeQuick
+import net.radstevee.universes.schematic.state.PaletteBlockState
+import net.radstevee.universes.toBlockPos
+import org.bukkit.Location
 import org.bukkit.NamespacedKey
+import org.bukkit.craftbukkit.block.CraftBlockState
 import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.deleteExisting
@@ -95,5 +106,35 @@ object SchematicManager {
     fun delete(key: NamespacedKey) {
         Path("schematics/${key.namespace}/${key.key}.nbt").deleteExisting()
         mutableSchematics.remove(key)
+    }
+
+    fun save(corner1: Location, corner2: Location, key: NamespacedKey) {
+        val corner1Pos = corner1.toBlockPos()
+        val corner2Pos = corner2.toBlockPos()
+        val (min, max) = corner1Pos.asExtremeties(corner2Pos)
+        val positions = BlockPos.betweenClosed(min, max)
+        val palette = mutableListOf<BlockState>()
+        val paletteBlockStates = positions.mapNotNull { pos ->
+            val location = Location(corner1.world, pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
+            val state = (location.block.state as CraftBlockState).handle
+            if (state.isAir) {
+                return@mapNotNull null
+            } else {
+                if (state !in palette) {
+                    palette.add(state)
+                }
+                val relativePos = pos.subtract(min)
+                val id = palette.indexOf(state)
+                PaletteBlockState(relativePos, id)
+            }
+        }
+        val blockBox = BlockBox(min, max)
+        val size = Vec3i(blockBox.sizeX(), blockBox.sizeY(), blockBox.sizeZ())
+        val schematic = Schematic(palette, paletteBlockStates, size)
+        val nbt = Schematic.CODEC.encodeQuick(NbtOps.INSTANCE, schematic)
+        val path = Path("schematics/${key.namespace}/${key.key}.nbt")
+        path.parent.toFile().mkdirs()
+        NbtIo.writeCompressed(nbt as CompoundTag, path)
+        put(key, schematic)
     }
 }
