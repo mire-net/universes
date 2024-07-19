@@ -6,8 +6,6 @@ import net.minecraft.core.BlockBox
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.radstevee.universes.Universes
-import net.radstevee.universes.toLocation
-import net.radstevee.universes.toTextColor
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Location
@@ -16,7 +14,6 @@ import org.bukkit.NamespacedKey
 import org.bukkit.Particle
 import org.bukkit.Particle.DustOptions
 import org.bukkit.entity.Display
-import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.entity.TextDisplay
 import org.bukkit.inventory.ItemStack

@@ -17,7 +17,7 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
-    implementation("net.radstevee:universes:0.2.2")
+    implementation("net.radstevee:universes:0.3.0")
 }
 
 val targetJavaVersion = 21
