@@ -43,3 +43,5 @@ bin/
 
 .idea/
 .kotlin/
+
+kls_database.db
