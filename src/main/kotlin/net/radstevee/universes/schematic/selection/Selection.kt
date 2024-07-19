@@ -1,6 +1,7 @@
 package net.radstevee.universes.schematic.selection
 
 import net.kyori.adventure.text.Component.text
+import net.kyori.adventure.text.format.TextDecoration
 import net.minecraft.core.BlockBox
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
@@ -65,21 +66,21 @@ enum class SelectionType {
     SCHEMATIC {
         override val wand = ItemStack(Material.BLAZE_ROD).apply {
             editMeta {
-                it.displayName(text("Schematic Selector"))
+                it.displayName(text("Schematic Selector").decoration(TextDecoration.ITALIC, false))
             }
         }
     },
     REGION {
         override val wand = ItemStack(Material.BAMBOO).apply {
             editMeta {
-                it.displayName(text("Region Selector"))
+                it.displayName(text("Region Selector").decoration(TextDecoration.ITALIC, false))
             }
         }
     },
     MARKER {
         override val wand = ItemStack(Material.ARROW).apply {
             editMeta {
-                it.displayName(text("Marker Selector"))
+                it.displayName(text("Marker Selector").decoration(TextDecoration.ITALIC, false))
             }
         }
     };
