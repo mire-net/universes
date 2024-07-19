@@ -47,6 +47,10 @@ class Selection(
         displayParticles()
     }, 20, 0)
 
+    init {
+        Universes.selectionEntities.add(nameTag)
+    }
+
     // Thanks to Coll and lowercasebtw for helping me with this ❤
     fun displayParticles() {
         val box = BlockBox(start, end)

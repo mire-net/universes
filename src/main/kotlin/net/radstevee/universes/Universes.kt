@@ -17,6 +17,7 @@ import org.bukkit.Location
 import org.bukkit.NamespacedKey
 import org.bukkit.World
 import org.bukkit.command.CommandSender
+import org.bukkit.entity.Entity
 import org.bukkit.permissions.Permission
 import org.bukkit.permissions.PermissionDefault
 import org.bukkit.plugin.java.JavaPlugin
@@ -49,6 +50,11 @@ object Universes {
      * The location to save universes.
      */
     var location: UniverseLocation? = null
+
+    /**
+     * The text displays used in schematic selections, to clean up on disable.
+     */
+    internal val selectionEntities = mutableListOf<Entity>()
 
     /**
      * Initialises the library.
@@ -98,6 +104,13 @@ object Universes {
         }
         UniversesCommand.register()
         SchematicManager.load()
+    }
+
+    /**
+     * Should be called on disable to clean up any stuff.
+     */
+    fun disable() {
+        selectionEntities.forEach(Entity::remove)
     }
 
     /**

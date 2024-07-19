@@ -2,7 +2,6 @@ package net.radstevee.universes.schematic.selection
 
 import net.radstevee.universes.Universes
 import net.radstevee.universes.toBlockPos
-import net.radstevee.universes.toLocation
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList

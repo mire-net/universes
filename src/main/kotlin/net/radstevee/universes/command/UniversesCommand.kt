@@ -127,6 +127,11 @@ internal object UniversesCommand {
                         val markers = SelectionManager[player]?.filter { it.first.type == SelectionType.MARKER }
                             ?.associate { it.first.key to Marker(it.first.key, it.first.start, it.first.data) } ?: mapOf()
 
+                        SelectionManager[player]?.forEach {
+                            Universes.selectionEntities.remove(it.first.nameTag)
+                            it.first.nameTag.remove()
+                        }
+
                         SchematicManager.save(start, end, selection.key, regions, markers, selection.data)
                         handler.unregister()
                         selection.task.cancel()
