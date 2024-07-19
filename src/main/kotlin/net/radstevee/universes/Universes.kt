@@ -3,6 +3,7 @@ package net.radstevee.universes
 import com.mojang.serialization.Decoder
 import com.mojang.serialization.DynamicOps
 import com.mojang.serialization.Encoder
+import net.kyori.adventure.text.format.TextColor
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Vec3i
 import net.minecraft.world.phys.AABB
@@ -11,8 +12,10 @@ import net.radstevee.universes.command.UniversesCommand
 import net.radstevee.universes.schematic.SchematicManager
 import net.radstevee.universes.world.Universe
 import org.bukkit.Bukkit
+import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
+import org.bukkit.World
 import org.bukkit.command.CommandSender
 import org.bukkit.permissions.Permission
 import org.bukkit.permissions.PermissionDefault
@@ -67,6 +70,8 @@ object Universes {
             "universes.command.schematic.selection.reopen",
             "universes.command.schematic.selection.data.add.literal",
             "universes.command.schematic.selection.data.add.int",
+            "universes.command.schematic.selection.data.add.bool",
+            "universes.command.schematic.edit"
         ).map {
             Permission(it, PermissionDefault.OP)
         })
@@ -133,6 +138,12 @@ object Universes {
 fun Location.toBlockPos() = BlockPos(floor(x).roundToInt(), floor(y).roundToInt(), floor(z).roundToInt())
 
 /**
+ * Converts a [BlockPos] to a [Location].
+ * @param world The world.
+ */
+fun BlockPos.toLocation(world: World) = Location(world, x.toDouble(), y.toDouble(), z.toDouble())
+
+/**
  * Compares this block position with another and returns an ordered pair.
  * Stolen from [mcbrawls/blueprint](https://github.com/mcbrawls/blueprint/blob/1.21/src/main/kotlin/net/mcbrawls/blueprint/BlueprintMod.kt)
  */
@@ -163,3 +174,6 @@ fun <A, T> Decoder<A>.decodeQuick(ops: DynamicOps<T>, input: T): A? {
  * Adds a vector to a block position.
  */
 fun BlockPos.add(vector: Vec3i) = offset(vector)
+
+fun min(a: BlockPos, b: BlockPos) = BlockPos(kotlin.math.min(a.x, b.x), kotlin.math.min(a.y, b.y), kotlin.math.min(a.z, b.z))
+fun max(a: BlockPos, b: BlockPos) = BlockPos(kotlin.math.max(a.x, b.x), kotlin.math.max(a.y, b.y), kotlin.math.max(a.z, b.z))

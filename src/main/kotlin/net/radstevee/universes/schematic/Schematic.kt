@@ -17,7 +17,7 @@ import net.radstevee.universes.schematic.state.PlacedSchematic
 import net.radstevee.universes.toBlockPos
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
-import org.bukkit.craftbukkit.block.CraftBlockState
+import org.bukkit.craftbukkit.CraftWorld
 
 /**
  * A schematic.
@@ -30,6 +30,7 @@ data class Schematic(
     override val key: NamespacedKey,
     val palette: List<BlockState>,
     val paletteStates: List<PaletteBlockState>,
+    val blockEntities: Map<BlockPos, SchematicBlockEntity>,
     val size: Vec3i,
     private val _regions: MutableMap<NamespacedKey, Region> = mutableMapOf(),
     override val data: MutableMap<NamespacedKey, CompoundTag> = mutableMapOf(),
@@ -55,11 +56,17 @@ data class Schematic(
      * @param location The location.
      */
     fun place(location: Location): PlacedSchematic {
-        forEach { offset, state ->
+        val world = (location.world as CraftWorld).handle
+        forEach { offset, (state, nbt) ->
             Universes.plugin.launch {
-                val position = location.clone().add(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble())
-                position.block.type = state.bukkitMaterial
-                (position.block.state as CraftBlockState).setData(state)
+                val position = location.clone().add(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble()).toBlockPos()
+
+                world.setBlock(position, state, 0)
+
+                nbt?.let {
+                    val blockEntity = world.getBlockEntity(position)
+                    blockEntity?.loadWithComponents(nbt, world.registryAccess())
+                }
             }
         }
         val blockPos = location.toBlockPos()
@@ -70,9 +77,10 @@ data class Schematic(
      * Executes an action on each block state.
      * @param action The action.
      */
-    private fun forEach(action: (BlockPos, BlockState) -> Unit) {
+    private fun forEach(action: (BlockPos, Pair<BlockState, CompoundTag?>) -> Unit) {
         paletteStates.forEach { (offset, i) ->
-            action(offset, palette[i])
+            val blockEntity = blockEntities[offset]?.nbt
+            action(offset, palette[i] to blockEntity)
         }
     }
 
@@ -109,6 +117,12 @@ data class Schematic(
                 PaletteBlockState.CODEC.listOf()
                     .fieldOf("states")
                     .forGetter(Schematic::paletteStates),
+                SchematicBlockEntity.CODEC
+                    .listOf()
+                    .fieldOf("block_entities")
+                    .xmap({ it.associateBy(SchematicBlockEntity::pos) }, { it.values.toList() })
+                    .orElseGet(::emptyMap)
+                    .forGetter(Schematic::blockEntities),
                 Vec3i.CODEC
                     .fieldOf("size")
                     .forGetter(Schematic::size),

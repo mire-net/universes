@@ -6,14 +6,21 @@ import net.minecraft.core.BlockBox
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.radstevee.universes.Universes
+import net.radstevee.universes.toLocation
+import net.radstevee.universes.toTextColor
 import org.bukkit.Bukkit
 import org.bukkit.Color
+import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.Particle
 import org.bukkit.Particle.DustOptions
+import org.bukkit.entity.Display
+import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
+import org.bukkit.entity.TextDisplay
 import org.bukkit.inventory.ItemStack
+import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
 import kotlin.math.roundToInt
 
@@ -27,6 +34,18 @@ class Selection(
     var data: MutableMap<NamespacedKey, CompoundTag> = mutableMapOf()
 ) {
     val color = SelectionManager.getColor(player, this)
+    val center: Location get() {
+        val box = BoundingBox(start.x.toDouble(), start.y.toDouble(), start.z.toDouble(), end.x.toDouble(), end.y.toDouble(), end.z.toDouble())
+        val center = box.center
+        val x = if(center.x % 1 == 0.0) center.x + 0.5 else center.x
+        val y = if(center.y % 1 == 0.0) center.y + 0.5 else center.y
+        val z = if(center.z % 1 == 0.0) center.z + 0.5 else center.z
+        return Location(player.world, x, y + 1.75, z)
+    }
+    val nameTag = player.world.spawn(center, TextDisplay::class.java) {
+        it.text(text(key.toString()))
+        it.billboard = Display.Billboard.CENTER
+    }
     val task = Bukkit.getScheduler().runTaskTimer(Universes.plugin, Runnable {
         displayParticles()
     }, 20, 0)

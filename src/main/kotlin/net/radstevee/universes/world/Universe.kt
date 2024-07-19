@@ -48,9 +48,16 @@ class Universe(
      * The world creator.
      */
     val worldCreator =
-        WorldCreator(id).biomeProvider(biomeProvider).environment(environment).generateStructures(generateStructures)
-            .generator(generator).keepSpawnLoaded(keepSpawnLoaded).generatorSettings(generatorSettings).seed(seed)
-            .hardcore(hardcore).type(type)
+        WorldCreator(id)
+            .biomeProvider(biomeProvider)
+            .environment(environment)
+            .generateStructures(generateStructures)
+            .generator(generator)
+            .keepSpawnLoaded(keepSpawnLoaded)
+            .generatorSettings(generatorSettings)
+            .seed(seed)
+            .hardcore(hardcore)
+            .type(type)
 
     /**
      * The world.

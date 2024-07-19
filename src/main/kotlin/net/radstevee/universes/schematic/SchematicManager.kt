@@ -8,17 +8,27 @@ import net.minecraft.nbt.NbtAccounter
 import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.NbtOps
 import net.minecraft.world.level.block.state.BlockState
+import net.radstevee.universes.add
 import net.radstevee.universes.asExtremeties
 import net.radstevee.universes.decodeQuick
 import net.radstevee.universes.encodeQuick
+import net.radstevee.universes.max
+import net.radstevee.universes.min
+import net.radstevee.universes.schematic.selection.Selection
+import net.radstevee.universes.schematic.selection.SelectionHandler
+import net.radstevee.universes.schematic.selection.SelectionManager
+import net.radstevee.universes.schematic.selection.SelectionType
 import net.radstevee.universes.schematic.state.PaletteBlockState
 import net.radstevee.universes.toBlockPos
+import net.radstevee.universes.toLocation
+import net.radstevee.universes.world.Universe
+import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
-import org.bukkit.craftbukkit.block.CraftBlockState
+import org.bukkit.craftbukkit.CraftWorld
+import org.bukkit.entity.Player
 import java.io.File
 import kotlin.io.path.Path
-import kotlin.io.path.deleteExisting
 import kotlin.io.path.exists
 
 /**
@@ -40,8 +50,7 @@ object SchematicManager {
      * @param key The schematic key.
      * @return Whether it exists or not.
      */
-    private fun exists(key: NamespacedKey) =
-        Path("schematics/${key.namespace}/${key.key}.nbt").exists() && _schematics.containsKey(key)
+    private fun exists(key: NamespacedKey) = Path("schematics/${key.namespace}/${key.key}.nbt").exists() && _schematics.containsKey(key)
 
     /**
      * Sets a schematic.
@@ -91,8 +100,7 @@ object SchematicManager {
                 val keyName = keyPath.removeSuffix(".nbt")
                 val key = NamespacedKey(namespace, keyName)
                 val nbt = NbtIo.readCompressed(
-                    Path("schematics/${key.namespace}/${key.key}.nbt"),
-                    NbtAccounter.unlimitedHeap()
+                    Path("schematics/${key.namespace}/${key.key}.nbt"), NbtAccounter.unlimitedHeap()
                 )
                 val result = Schematic.CODEC.decodeQuick(NbtOps.INSTANCE, nbt) ?: return@forEach
 
@@ -141,23 +149,64 @@ object SchematicManager {
         val (min, max) = startPos.asExtremeties(endPos)
         val positions = BlockPos.betweenClosed(min, max)
         val palette = mutableListOf<BlockState>()
-        val paletteBlockStates = positions.mapNotNull {
-            val location = Location(start.world, it.x.toDouble(), it.y.toDouble(), it.z.toDouble())
-            val state = (location.block.state as CraftBlockState).handle
-            if (state.isAir) return@mapNotNull null
-            else {
-                if (state !in palette) palette.add(state)
-                val relativePos = it.subtract(min)
-                val id = palette.indexOf(state)
-                PaletteBlockState(relativePos, id)
+        val blockEntities = mutableListOf<SchematicBlockEntity>()
+        val world = (start.world as CraftWorld).handle
+        val paletteBlockStates = buildList {
+            positions.forEach { pos ->
+                val relative = pos.subtract(min)
+                val state = world.getBlockState(pos)
+
+                if (!state.isAir) {
+                    if (state !in palette) palette.add(state)
+                    val id = palette.indexOf(state)
+                    add(PaletteBlockState(relative, id))
+                }
+
+                world.getBlockEntity(pos)?.let {
+                    val nbt = it.saveWithoutMetadata(world.registryAccess())
+                    blockEntities.add(SchematicBlockEntity(relative, nbt))
+                }
             }
         }
         val blockBox = BlockBox(min, max)
         val size = Vec3i(blockBox.sizeX(), blockBox.sizeY(), blockBox.sizeZ())
-        val schematic = Schematic(key, palette, paletteBlockStates, size, mutableMapOf(), data.toMutableMap(), mutableMapOf())
+        val schematic = Schematic(key, palette, paletteBlockStates, blockEntities.associateBy(SchematicBlockEntity::pos), size, mutableMapOf(), data.toMutableMap(), mutableMapOf())
         regions.forEach { schematic.addRegion(blockBox, it.key, it.value) }
         markers.forEach { schematic.addMarker(blockBox, it.key, it.value) }
         save(schematic, key)
         this[key] = schematic
+    }
+
+    /**
+     * Sets a player into editing mode for a schematic.
+     * @param schematic The schematic.
+     * @param player The player.
+     */
+    fun edit(schematic: Schematic, player: Player) {
+        val universe = Universe(NamespacedKey("universes", "${schematic.key.toString().replace(":", "_")}-editor"))
+        schematic.place(Location(universe.world, 0.0, 0.0, 0.0))
+        player.gameMode = GameMode.CREATIVE
+        player.teleport(schematic.center.add(Vec3i(0, schematic.size.y / 2, 0)).toLocation(universe.world))
+        SelectionType.entries.forEach { player.inventory.addItem(it.wand) }
+        val markerSelections = schematic.markers.map {
+            Selection(
+                SelectionType.MARKER, it.key, player, it.value.pos, it.value.pos, false, it.value.data
+            )
+        }
+        val regionSelections = schematic.regions.map {
+            Selection(
+                SelectionType.REGION,
+                it.key,
+                player,
+                min(it.value.box.min, it.value.box.max),
+                max(it.value.box.max, it.value.box.max),
+                true,
+                it.value.data
+            )
+        }
+        val selections = (markerSelections + regionSelections).associateWith { SelectionHandler(it) }
+        selections.forEach { it.value.register() }
+        SelectionManager[player] = selections.toList().toMutableList()
+        SelectionManager.editors[player] = true to player.location
     }
 }
