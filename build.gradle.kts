@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "net.radstevee"
-version = "1.0-SNAPSHOT"
+version = "0.2.0"
 
 repositories {
     mavenLocal()
@@ -20,13 +20,13 @@ repositories {
 dependencies {
     implementation("org.incendo:cloud-paper:2.0.0-beta.7")
     implementation("org.incendo:cloud-kotlin-extensions:2.0.0-rc.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.18.0")
+    implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.18.0")
 
     paperweight.paperDevBundle("1.20.6-R0.1-SNAPSHOT")
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
 kotlin {
     jvmToolchain(21)
 }

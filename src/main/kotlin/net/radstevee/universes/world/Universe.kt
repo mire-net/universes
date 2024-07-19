@@ -33,7 +33,7 @@ class Universe(
     environment: World.Environment = World.Environment.NORMAL,
     generateStructures: Boolean = false,
     generator: ChunkGenerator = EmptyGenerator,
-    keepSpawnLoaded: TriState = TriState.NOT_SET,
+    keepSpawnLoaded: TriState = TriState.FALSE,
     generatorSettings: String = "{}",
     hardcore: Boolean = false,
     seed: Long = Random.nextLong(),

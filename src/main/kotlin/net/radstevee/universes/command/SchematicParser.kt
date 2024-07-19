@@ -1,4 +1,4 @@
-package net.radstevee.universes.command.parser
+package net.radstevee.universes.command
 
 import net.radstevee.universes.schematic.Schematic
 import net.radstevee.universes.schematic.SchematicManager
@@ -33,9 +33,10 @@ class SchematicParser<C> : ArgumentParser<C, Schematic>, BlockingSuggestionProvi
                 )
             )
         }
-        try {
+
+        return runCatching {
             val ret = when (split.size) {
-                1 -> return ArgumentParseResult.failure(
+                1 -> return@runCatching ArgumentParseResult.failure(
                     NamespacedKeyParser.NamespacedKeyParseException(
                         BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_NEED_NAMESPACE,
                         input,
@@ -44,14 +45,14 @@ class SchematicParser<C> : ArgumentParser<C, Schematic>, BlockingSuggestionProvi
                 )
 
                 2 -> NamespacedKey(commandInput.readUntilAndSkip(':'), commandInput.readString())
-                else -> return ArgumentParseResult.failure(
+                else -> return@runCatching ArgumentParseResult.failure(
                     NamespacedKeyParser.NamespacedKeyParseException(
                         BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_KEY, input, commandContext
                     )
                 )
             }
 
-            if (!SchematicManager.isValid(ret)) return ArgumentParseResult.failure(
+            if (!SchematicManager.isValid(ret)) return@runCatching ArgumentParseResult.failure(
                 NamespacedKeyParser.NamespacedKeyParseException(
                     Caption.of("universes.command.invalid_schematic"),
                     input,
@@ -60,9 +61,9 @@ class SchematicParser<C> : ArgumentParser<C, Schematic>, BlockingSuggestionProvi
             )
 
             // Success!
-            return ArgumentParseResult.success(SchematicManager[ret]!!)
-        } catch (_: IllegalArgumentException) {
-            return ArgumentParseResult.failure(
+            ArgumentParseResult.success(SchematicManager[ret]!!)
+        }.getOrElse {
+            ArgumentParseResult.failure(
                 NamespacedKeyParser.NamespacedKeyParseException(
                     Caption.of("universes.command.invalid_schematic_key"),
                     input,

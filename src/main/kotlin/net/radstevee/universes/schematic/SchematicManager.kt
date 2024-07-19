@@ -28,12 +28,12 @@ object SchematicManager {
     /**
      * A mutable list of schematics, to be modified internally.
      */
-    private val mutableSchematics = mutableMapOf<NamespacedKey, Schematic>()
+    private val _schematics = mutableMapOf<NamespacedKey, Schematic>()
 
     /**
      * The list of schematics.
      */
-    val schematics get() = mutableSchematics.toMap()
+    val schematics get() = _schematics.toMap()
 
     /**
      * Whether a schematic exists.
@@ -41,15 +41,15 @@ object SchematicManager {
      * @return Whether it exists or not.
      */
     private fun exists(key: NamespacedKey) =
-        Path("schematics/${key.namespace}/${key.key}.nbt").exists() && mutableSchematics.containsKey(key)
+        Path("schematics/${key.namespace}/${key.key}.nbt").exists() && _schematics.containsKey(key)
 
     /**
-     * Puts a schematic.
+     * Sets a schematic.
      * @param key The schematic key.
      * @param schematic The schematic.
      */
-    fun put(key: NamespacedKey, schematic: Schematic) {
-        mutableSchematics[key] = schematic
+    operator fun set(key: NamespacedKey, schematic: Schematic) {
+        _schematics[key] = schematic
     }
 
     /**
@@ -57,7 +57,7 @@ object SchematicManager {
      * @param key The schematic key.
      * @return The schematic, if found.
      */
-    operator fun get(key: NamespacedKey) = mutableSchematics[key]
+    operator fun get(key: NamespacedKey) = _schematics[key]
 
     /**
      * Checks if a schematic key is valid or not.
@@ -83,7 +83,6 @@ object SchematicManager {
 
         basePath.toFile().walkTopDown().forEach { file ->
             if (file.isDirectory) return@forEach
-
             val relativePath = basePath.relativize(file.toPath()).toString().replace(File.separatorChar, '/')
             val namespace = relativePath.substringBefore('/')
             val keyPath = relativePath.substringAfter('/')
@@ -91,10 +90,13 @@ object SchematicManager {
             if (namespace.isNotBlank() && keyPath.isNotBlank() && keyPath.endsWith(".nbt")) {
                 val keyName = keyPath.removeSuffix(".nbt")
                 val key = NamespacedKey(namespace, keyName)
-                val nbt = NbtIo.readCompressed(Path("schematics/${key.namespace}/${key.key}.nbt"), NbtAccounter.unlimitedHeap())
+                val nbt = NbtIo.readCompressed(
+                    Path("schematics/${key.namespace}/${key.key}.nbt"),
+                    NbtAccounter.unlimitedHeap()
+                )
                 val result = Schematic.CODEC.decodeQuick(NbtOps.INSTANCE, nbt) ?: return@forEach
 
-                put(key, result)
+                this[key] = result
             }
         }
     }
@@ -105,36 +107,57 @@ object SchematicManager {
      */
     fun delete(key: NamespacedKey) {
         Path("schematics/${key.namespace}/${key.key}.nbt").deleteExisting()
-        mutableSchematics.remove(key)
+        _schematics.remove(key)
     }
 
-    fun save(corner1: Location, corner2: Location, key: NamespacedKey) {
-        val corner1Pos = corner1.toBlockPos()
-        val corner2Pos = corner2.toBlockPos()
-        val (min, max) = corner1Pos.asExtremeties(corner2Pos)
+    /**
+     * Saves a schematic.
+     * @param schematic The schematic.
+     * @param key The schematic key.
+     */
+    fun save(schematic: Schematic, key: NamespacedKey) {
+        val nbt = Schematic.CODEC.encodeQuick(NbtOps.INSTANCE, schematic)
+        val path = Path("schematics/${key.namespace}/${key.key}.nbt")
+        path.parent.toFile().mkdirs()
+        NbtIo.writeCompressed(nbt as CompoundTag, path)
+    }
+
+    /**
+     * Saves a schematic.
+     * @param start The start location.
+     * @param end The end location.
+     * @param key The schematic key.
+     */
+    fun save(
+        start: Location,
+        end: Location,
+        key: NamespacedKey,
+        regions: Map<NamespacedKey, Region> = mapOf(),
+        markers: Map<NamespacedKey, Marker> = mapOf(),
+        data: Map<NamespacedKey, CompoundTag> = mapOf()
+    ) {
+        val startPos = start.toBlockPos()
+        val endPos = end.toBlockPos()
+        val (min, max) = startPos.asExtremeties(endPos)
         val positions = BlockPos.betweenClosed(min, max)
         val palette = mutableListOf<BlockState>()
-        val paletteBlockStates = positions.mapNotNull { pos ->
-            val location = Location(corner1.world, pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
+        val paletteBlockStates = positions.mapNotNull {
+            val location = Location(start.world, it.x.toDouble(), it.y.toDouble(), it.z.toDouble())
             val state = (location.block.state as CraftBlockState).handle
-            if (state.isAir) {
-                return@mapNotNull null
-            } else {
-                if (state !in palette) {
-                    palette.add(state)
-                }
-                val relativePos = pos.subtract(min)
+            if (state.isAir) return@mapNotNull null
+            else {
+                if (state !in palette) palette.add(state)
+                val relativePos = it.subtract(min)
                 val id = palette.indexOf(state)
                 PaletteBlockState(relativePos, id)
             }
         }
         val blockBox = BlockBox(min, max)
         val size = Vec3i(blockBox.sizeX(), blockBox.sizeY(), blockBox.sizeZ())
-        val schematic = Schematic(palette, paletteBlockStates, size)
-        val nbt = Schematic.CODEC.encodeQuick(NbtOps.INSTANCE, schematic)
-        val path = Path("schematics/${key.namespace}/${key.key}.nbt")
-        path.parent.toFile().mkdirs()
-        NbtIo.writeCompressed(nbt as CompoundTag, path)
-        put(key, schematic)
+        val schematic = Schematic(palette, paletteBlockStates, size, mutableMapOf(), data.toMutableMap(), mutableMapOf())
+        regions.forEach { schematic.addRegion(blockBox, it.key, it.value) }
+        markers.forEach { schematic.addMarker(blockBox, it.key, it.value) }
+        save(schematic, key)
+        this[key] = schematic
     }
 }

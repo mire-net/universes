@@ -4,6 +4,7 @@ import com.mojang.serialization.Decoder
 import com.mojang.serialization.DynamicOps
 import com.mojang.serialization.Encoder
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Vec3i
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import net.radstevee.universes.command.UniversesCommand
@@ -34,7 +35,7 @@ object Universes {
     /**
      * The plugin.
      */
-    private lateinit var plugin: JavaPlugin
+    internal lateinit var plugin: JavaPlugin
 
     /**
      * The list of universes.
@@ -147,3 +148,8 @@ fun <A, T> Encoder<A>.encodeQuick(ops: DynamicOps<T>, input: A): T? {
 fun <A, T> Decoder<A>.decodeQuick(ops: DynamicOps<T>, input: T): A? {
     return parse(ops, input).result().orElse(null)
 }
+
+/**
+ * Adds a vector to a block position.
+ */
+fun BlockPos.add(vector: Vec3i) = offset(vector)

@@ -23,8 +23,12 @@ data class PaletteBlockState(
          */
         val CODEC: Codec<PaletteBlockState> = RecordCodecBuilder.create { instance ->
             instance.group(
-                BlockPos.CODEC.fieldOf("offset").forGetter(PaletteBlockState::offset),
-                Codec.INT.fieldOf("index").forGetter(PaletteBlockState::index)
+                BlockPos.CODEC
+                    .fieldOf("offset")
+                    .forGetter(PaletteBlockState::offset),
+                Codec.INT
+                    .fieldOf("index")
+                    .forGetter(PaletteBlockState::index)
             ).apply(instance, ::PaletteBlockState)
         }
     }
