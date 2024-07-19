@@ -3,7 +3,6 @@ package net.radstevee.universes
 import com.mojang.serialization.Decoder
 import com.mojang.serialization.DynamicOps
 import com.mojang.serialization.Encoder
-import net.kyori.adventure.text.format.TextColor
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Vec3i
 import net.minecraft.world.phys.AABB
@@ -12,7 +11,6 @@ import net.radstevee.universes.command.UniversesCommand
 import net.radstevee.universes.schematic.SchematicManager
 import net.radstevee.universes.world.Universe
 import org.bukkit.Bukkit
-import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
 import org.bukkit.World
@@ -65,26 +63,30 @@ object Universes {
         if (location!!.worldNameBuilder == null) error("Universe world name builder must be set!")
         this.plugin = plugin
         Bukkit.getPluginManager().registerEvents(UniversesListener, plugin)
-        Bukkit.getPluginManager().addPermissions(listOf(
-            "universes.command.schematic.save",
-            "universes.command.schematic.place",
-            "universes.command.schematic.delete",
-            "universes.command.schematic.new",
-            "universes.command.schematic.region",
-            "universes.command.schematic.marker",
-            "universes.command.schematic.selection.finish",
-            "universes.command.schematic.selection.reopen",
-            "universes.command.schematic.selection.data.add.literal",
-            "universes.command.schematic.selection.data.add.int",
-            "universes.command.schematic.selection.data.add.bool",
-            "universes.command.schematic.edit"
-        ).map {
-            Permission(it, PermissionDefault.OP)
-        })
-
-        commandManager = PaperCommandManager.createNative(
-            plugin, ExecutionCoordinator.simpleCoordinator()
+        Bukkit.getPluginManager().addPermissions(
+            listOf(
+                "universes.command.schematic.save",
+                "universes.command.schematic.place",
+                "universes.command.schematic.delete",
+                "universes.command.schematic.new",
+                "universes.command.schematic.region",
+                "universes.command.schematic.marker",
+                "universes.command.schematic.selection.finish",
+                "universes.command.schematic.selection.reopen",
+                "universes.command.schematic.selection.data.add.literal",
+                "universes.command.schematic.selection.data.add.int",
+                "universes.command.schematic.selection.data.add.bool",
+                "universes.command.schematic.edit",
+            ).map {
+                Permission(it, PermissionDefault.OP)
+            },
         )
+
+        commandManager =
+            PaperCommandManager.createNative(
+                plugin,
+                ExecutionCoordinator.simpleCoordinator(),
+            )
         if (commandManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) commandManager.registerBrigadier()
         if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) commandManager.registerAsynchronousCompletions()
         brigManager = commandManager.brigadierManager()
@@ -92,13 +94,17 @@ object Universes {
         brigSettings.set(BrigadierSetting.FORCE_EXECUTABLE, true)
         listOf(
             CaptionProvider.constantProvider<CommandSender>(
-                Caption.of("universes.command.invalid_schematic"), "That schematic is corrupted or invalid!"
-            ), CaptionProvider.constantProvider(
-                Caption.of("universes.command.invalid_schematic_key"), "Invalid schematic key!"
+                Caption.of("universes.command.invalid_schematic"),
+                "That schematic is corrupted or invalid!",
             ),
             CaptionProvider.constantProvider(
-                Caption.of("universes.command.invalid_schematic_element"), "Invalid schematic element!"
-            )
+                Caption.of("universes.command.invalid_schematic_key"),
+                "Invalid schematic key!",
+            ),
+            CaptionProvider.constantProvider(
+                Caption.of("universes.command.invalid_schematic_element"),
+                "Invalid schematic element!",
+            ),
         ).forEach {
             commandManager.captionRegistry().registerProvider(it)
         }
@@ -171,22 +177,31 @@ fun BlockPos.asExtremeties(other: BlockPos): Pair<BlockPos, BlockPos> {
  * Encodes to a dynamic ops format.
  * Stolen from [mcbrawls/codex](https://github.com/mcbrawls/codex/blob/1.21/src/main/kotlin/dev/andante/codex/Codex.kt)
  */
-fun <A, T> Encoder<A>.encodeQuick(ops: DynamicOps<T>, input: A): T? {
-    return encodeStart(ops, input).result().orElse(null)
-}
+fun <A, T> Encoder<A>.encodeQuick(
+    ops: DynamicOps<T>,
+    input: A,
+): T? = encodeStart(ops, input).result().orElse(null)
 
 /**
  * Decodes from a dynamic ops format.
  * Stolen from [mcbrawls/codex](https://github.com/mcbrawls/codex/blob/1.21/src/main/kotlin/dev/andante/codex/Codex.kt)
  */
-fun <A, T> Decoder<A>.decodeQuick(ops: DynamicOps<T>, input: T): A? {
-    return parse(ops, input).result().orElse(null)
-}
+fun <A, T> Decoder<A>.decodeQuick(
+    ops: DynamicOps<T>,
+    input: T,
+): A? = parse(ops, input).result().orElse(null)
 
 /**
  * Adds a vector to a block position.
  */
 fun BlockPos.add(vector: Vec3i) = offset(vector)
 
-fun min(a: BlockPos, b: BlockPos) = BlockPos(kotlin.math.min(a.x, b.x), kotlin.math.min(a.y, b.y), kotlin.math.min(a.z, b.z))
-fun max(a: BlockPos, b: BlockPos) = BlockPos(kotlin.math.max(a.x, b.x), kotlin.math.max(a.y, b.y), kotlin.math.max(a.z, b.z))
+fun min(
+    a: BlockPos,
+    b: BlockPos,
+) = BlockPos(kotlin.math.min(a.x, b.x), kotlin.math.min(a.y, b.y), kotlin.math.min(a.z, b.z))
+
+fun max(
+    a: BlockPos,
+    b: BlockPos,
+) = BlockPos(kotlin.math.max(a.x, b.x), kotlin.math.max(a.y, b.y), kotlin.math.max(a.z, b.z))

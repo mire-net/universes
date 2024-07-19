@@ -5,11 +5,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.core.BlockBox
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.NbtOps
 import net.radstevee.universes.DataHolder
 import net.radstevee.universes.DataHolder.Companion.NAMESPACED_KEY_CODEC
-import net.radstevee.universes.decodeQuick
-import net.radstevee.universes.encodeQuick
 import net.radstevee.universes.toBlockPos
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
@@ -24,8 +21,9 @@ import org.bukkit.NamespacedKey
 data class Region(
     override val key: NamespacedKey,
     var box: BlockBox,
-    override val data: MutableMap<NamespacedKey, CompoundTag> = mutableMapOf()
-) : DataHolder, SchematicElement {
+    override val data: MutableMap<NamespacedKey, CompoundTag> = mutableMapOf(),
+) : DataHolder,
+    SchematicElement {
     /**
      * Represents a region within a schematic. This can have a key and data.
      * @param key The region key.
@@ -38,32 +36,36 @@ data class Region(
         /**
          * A codec for [BlockBox].
          */
-        val BLOCK_BOX_CODEC: Codec<BlockBox> = RecordCodecBuilder.create { instance ->
-            instance.group(
-                BlockPos.CODEC
-                    .fieldOf("min")
-                    .forGetter(BlockBox::min),
-                BlockPos.CODEC
-                    .fieldOf("max")
-                    .forGetter(BlockBox::max)
-            ).apply(instance, ::BlockBox)
-        }
+        val BLOCK_BOX_CODEC: Codec<BlockBox> =
+            RecordCodecBuilder.create { instance ->
+                instance
+                    .group(
+                        BlockPos.CODEC
+                            .fieldOf("min")
+                            .forGetter(BlockBox::min),
+                        BlockPos.CODEC
+                            .fieldOf("max")
+                            .forGetter(BlockBox::max),
+                    ).apply(instance, ::BlockBox)
+            }
 
         /**
          * The codec for this class.
          */
-        val CODEC: Codec<Region> = RecordCodecBuilder.create { instance ->
-            instance.group(
-                NAMESPACED_KEY_CODEC
-                    .fieldOf("key")
-                    .forGetter(Region::key),
-                BLOCK_BOX_CODEC
-                    .fieldOf("box")
-                    .forGetter(Region::box),
-                DataHolder.CODEC
-                    .fieldOf("data")
-                    .forGetter(Region::data)
-            ).apply(instance, ::Region)
-        }
+        val CODEC: Codec<Region> =
+            RecordCodecBuilder.create { instance ->
+                instance
+                    .group(
+                        NAMESPACED_KEY_CODEC
+                            .fieldOf("key")
+                            .forGetter(Region::key),
+                        BLOCK_BOX_CODEC
+                            .fieldOf("box")
+                            .forGetter(Region::box),
+                        DataHolder.CODEC
+                            .fieldOf("data")
+                            .forGetter(Region::data),
+                    ).apply(instance, ::Region)
+            }
     }
 }

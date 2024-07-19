@@ -28,24 +28,32 @@ class Selection(
     var start: BlockPos,
     var end: BlockPos,
     var finished: Boolean = false,
-    var data: MutableMap<NamespacedKey, CompoundTag> = mutableMapOf()
+    var data: MutableMap<NamespacedKey, CompoundTag> = mutableMapOf(),
 ) {
     val color = SelectionManager.getColor(player, this)
     val center: Location get() {
-        val box = BoundingBox(start.x.toDouble(), start.y.toDouble(), start.z.toDouble(), end.x.toDouble(), end.y.toDouble(), end.z.toDouble())
+        val box =
+            BoundingBox(start.x.toDouble(), start.y.toDouble(), start.z.toDouble(), end.x.toDouble(), end.y.toDouble(), end.z.toDouble())
         val center = box.center
-        val x = if(center.x % 1 == 0.0) center.x + 0.5 else center.x
-        val y = if(center.y % 1 == 0.0) center.y + 0.5 else center.y
-        val z = if(center.z % 1 == 0.0) center.z + 0.5 else center.z
+        val x = if (center.x % 1 == 0.0) center.x + 0.5 else center.x
+        val y = if (center.y % 1 == 0.0) center.y + 0.5 else center.y
+        val z = if (center.z % 1 == 0.0) center.z + 0.5 else center.z
         return Location(player.world, x, y + 1.75, z)
     }
-    val nameTag = player.world.spawn(center, TextDisplay::class.java) {
-        it.text(text(key.toString()))
-        it.billboard = Display.Billboard.CENTER
-    }
-    val task = Bukkit.getScheduler().runTaskTimer(Universes.plugin, Runnable {
-        displayParticles()
-    }, 20, 0)
+    val nameTag =
+        player.world.spawn(center, TextDisplay::class.java) {
+            it.text(text(key.toString()))
+            it.billboard = Display.Billboard.CENTER
+        }
+    val task =
+        Bukkit.getScheduler().runTaskTimer(
+            Universes.plugin,
+            Runnable {
+                displayParticles()
+            },
+            20,
+            0,
+        )
 
     init {
         Universes.selectionEntities.add(nameTag)
@@ -71,7 +79,11 @@ class Selection(
         drawParticleLines(sizeZ.clone().multiply(-1), color, pointB, pointD)
     }
 
-    private fun drawParticleLines(path: Vector, color: Color, vararg origins: Vector) {
+    private fun drawParticleLines(
+        path: Vector,
+        color: Color,
+        vararg origins: Vector,
+    ) {
         origins.forEach { origin ->
             for (distance in 0 until path.length().roundToInt()) {
                 val position = origin.clone().add(path.clone().normalize().multiply(distance))
@@ -84,26 +96,29 @@ class Selection(
 
 enum class SelectionType {
     SCHEMATIC {
-        override val wand = ItemStack(Material.BLAZE_ROD).apply {
-            editMeta {
-                it.displayName(text("Schematic Selector").decoration(TextDecoration.ITALIC, false))
+        override val wand =
+            ItemStack(Material.BLAZE_ROD).apply {
+                editMeta {
+                    it.displayName(text("Schematic Selector").decoration(TextDecoration.ITALIC, false))
+                }
             }
-        }
     },
     REGION {
-        override val wand = ItemStack(Material.BAMBOO).apply {
-            editMeta {
-                it.displayName(text("Region Selector").decoration(TextDecoration.ITALIC, false))
+        override val wand =
+            ItemStack(Material.BAMBOO).apply {
+                editMeta {
+                    it.displayName(text("Region Selector").decoration(TextDecoration.ITALIC, false))
+                }
             }
-        }
     },
     MARKER {
-        override val wand = ItemStack(Material.ARROW).apply {
-            editMeta {
-                it.displayName(text("Marker Selector").decoration(TextDecoration.ITALIC, false))
+        override val wand =
+            ItemStack(Material.ARROW).apply {
+                editMeta {
+                    it.displayName(text("Marker Selector").decoration(TextDecoration.ITALIC, false))
+                }
             }
-        }
-    };
+    }, ;
 
     abstract val wand: ItemStack
 }

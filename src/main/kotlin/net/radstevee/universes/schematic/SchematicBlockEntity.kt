@@ -12,21 +12,23 @@ import net.minecraft.nbt.CompoundTag
  */
 data class SchematicBlockEntity(
     val pos: BlockPos,
-    val nbt: CompoundTag
+    val nbt: CompoundTag,
 ) {
     companion object {
         /**
          * The codec for this class.
          */
-        val CODEC: Codec<SchematicBlockEntity> = RecordCodecBuilder.create { instance ->
-            instance.group(
-                BlockPos.CODEC
-                    .fieldOf("pos")
-                    .forGetter(SchematicBlockEntity::pos),
-                CompoundTag.CODEC
-                    .fieldOf("nbt")
-                    .forGetter(SchematicBlockEntity::nbt)
-            ).apply(instance, ::SchematicBlockEntity)
-        }
+        val CODEC: Codec<SchematicBlockEntity> =
+            RecordCodecBuilder.create { instance ->
+                instance
+                    .group(
+                        BlockPos.CODEC
+                            .fieldOf("pos")
+                            .forGetter(SchematicBlockEntity::pos),
+                        CompoundTag.CODEC
+                            .fieldOf("nbt")
+                            .forGetter(SchematicBlockEntity::nbt),
+                    ).apply(instance, ::SchematicBlockEntity)
+            }
     }
 }

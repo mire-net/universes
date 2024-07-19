@@ -57,7 +57,10 @@ object SchematicManager {
      * @param key The schematic key.
      * @param schematic The schematic.
      */
-    operator fun set(key: NamespacedKey, schematic: Schematic) {
+    operator fun set(
+        key: NamespacedKey,
+        schematic: Schematic,
+    ) {
         _schematics[key] = schematic
     }
 
@@ -99,9 +102,11 @@ object SchematicManager {
             if (namespace.isNotBlank() && keyPath.isNotBlank() && keyPath.endsWith(".nbt")) {
                 val keyName = keyPath.removeSuffix(".nbt")
                 val key = NamespacedKey(namespace, keyName)
-                val nbt = NbtIo.readCompressed(
-                    Path("schematics/${key.namespace}/${key.key}.nbt"), NbtAccounter.unlimitedHeap()
-                )
+                val nbt =
+                    NbtIo.readCompressed(
+                        Path("schematics/${key.namespace}/${key.key}.nbt"),
+                        NbtAccounter.unlimitedHeap(),
+                    )
                 val result = Schematic.CODEC.decodeQuick(NbtOps.INSTANCE, nbt) ?: return@forEach
 
                 this[key] = result
@@ -123,7 +128,10 @@ object SchematicManager {
      * @param schematic The schematic.
      * @param key The schematic key.
      */
-    fun save(schematic: Schematic, key: NamespacedKey) {
+    fun save(
+        schematic: Schematic,
+        key: NamespacedKey,
+    ) {
         val nbt = Schematic.CODEC.encodeQuick(NbtOps.INSTANCE, schematic)
         val path = Path("schematics/${key.namespace}/${key.key}.nbt")
         path.parent.toFile().mkdirs()
@@ -142,7 +150,7 @@ object SchematicManager {
         key: NamespacedKey,
         regions: Map<NamespacedKey, Region> = mapOf(),
         markers: Map<NamespacedKey, Marker> = mapOf(),
-        data: Map<NamespacedKey, CompoundTag> = mapOf()
+        data: Map<NamespacedKey, CompoundTag> = mapOf(),
     ) {
         val startPos = start.toBlockPos()
         val endPos = end.toBlockPos()
@@ -151,26 +159,37 @@ object SchematicManager {
         val palette = mutableListOf<BlockState>()
         val blockEntities = mutableListOf<SchematicBlockEntity>()
         val world = (start.world as CraftWorld).handle
-        val paletteBlockStates = buildList {
-            positions.forEach { pos ->
-                val relative = pos.subtract(min)
-                val state = world.getBlockState(pos)
+        val paletteBlockStates =
+            buildList {
+                positions.forEach { pos ->
+                    val relative = pos.subtract(min)
+                    val state = world.getBlockState(pos)
 
-                if (!state.isAir) {
-                    if (state !in palette) palette.add(state)
-                    val id = palette.indexOf(state)
-                    add(PaletteBlockState(relative, id))
-                }
+                    if (!state.isAir) {
+                        if (state !in palette) palette.add(state)
+                        val id = palette.indexOf(state)
+                        add(PaletteBlockState(relative, id))
+                    }
 
-                world.getBlockEntity(pos)?.let {
-                    val nbt = it.saveWithoutMetadata(world.registryAccess())
-                    blockEntities.add(SchematicBlockEntity(relative, nbt))
+                    world.getBlockEntity(pos)?.let {
+                        val nbt = it.saveWithoutMetadata(world.registryAccess())
+                        blockEntities.add(SchematicBlockEntity(relative, nbt))
+                    }
                 }
             }
-        }
         val blockBox = BlockBox(min, max)
         val size = Vec3i(blockBox.sizeX(), blockBox.sizeY(), blockBox.sizeZ())
-        val schematic = Schematic(key, palette, paletteBlockStates, blockEntities.associateBy(SchematicBlockEntity::pos), size, mutableMapOf(), data.toMutableMap(), mutableMapOf())
+        val schematic =
+            Schematic(
+                key,
+                palette,
+                paletteBlockStates,
+                blockEntities.associateBy(SchematicBlockEntity::pos),
+                size,
+                mutableMapOf(),
+                data.toMutableMap(),
+                mutableMapOf(),
+            )
         regions.forEach { schematic.addRegion(blockBox, it.key, it.value) }
         markers.forEach { schematic.addMarker(blockBox, it.key, it.value) }
         save(schematic, key)
@@ -182,28 +201,39 @@ object SchematicManager {
      * @param schematic The schematic.
      * @param player The player.
      */
-    fun edit(schematic: Schematic, player: Player) {
+    fun edit(
+        schematic: Schematic,
+        player: Player,
+    ) {
         val universe = Universe(NamespacedKey("universes", "${schematic.key.toString().replace(":", "_")}-editor"))
         schematic.place(Location(universe.world, 0.0, 0.0, 0.0))
         player.gameMode = GameMode.CREATIVE
         player.teleport(schematic.center.add(Vec3i(0, schematic.size.y / 2, 0)).toLocation(universe.world))
         SelectionType.entries.forEach { player.inventory.addItem(it.wand) }
-        val markerSelections = schematic.markers.map {
-            Selection(
-                SelectionType.MARKER, it.key, player, it.value.pos, it.value.pos, false, it.value.data
-            )
-        }
-        val regionSelections = schematic.regions.map {
-            Selection(
-                SelectionType.REGION,
-                it.key,
-                player,
-                min(it.value.box.min, it.value.box.max),
-                max(it.value.box.max, it.value.box.max),
-                true,
-                it.value.data
-            )
-        }
+        val markerSelections =
+            schematic.markers.map {
+                Selection(
+                    SelectionType.MARKER,
+                    it.key,
+                    player,
+                    it.value.pos,
+                    it.value.pos,
+                    false,
+                    it.value.data,
+                )
+            }
+        val regionSelections =
+            schematic.regions.map {
+                Selection(
+                    SelectionType.REGION,
+                    it.key,
+                    player,
+                    min(it.value.box.min, it.value.box.max),
+                    max(it.value.box.max, it.value.box.max),
+                    true,
+                    it.value.data,
+                )
+            }
         val selections = (markerSelections + regionSelections).associateWith { SelectionHandler(it) }
         selections.forEach { it.value.register() }
         SelectionManager[player] = selections.toList().toMutableList()

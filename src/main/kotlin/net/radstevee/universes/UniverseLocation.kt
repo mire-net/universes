@@ -16,9 +16,14 @@ data class UniverseLocation(
      */
     private sealed class Parameter {
         data object UUID : Parameter()
+
         data object KEY : Parameter()
+
         data object NAMESPACE : Parameter()
-        data class LITERAL(val text: String) : Parameter()
+
+        data class LITERAL(
+            val text: String,
+        ) : Parameter()
     }
 
     /**
@@ -26,6 +31,7 @@ data class UniverseLocation(
      */
     inner class WorldNameBuilder {
         private val params = mutableListOf<Parameter>()
+
         private fun add(parameter: Parameter) = params.add(parameter)
 
         /**
@@ -54,7 +60,10 @@ data class UniverseLocation(
          * @param key The key for the world.
          * @param uuid The world UUID.
          */
-        internal fun getWorldName(key: NamespacedKey, uuid: UUID) = buildString {
+        internal fun getWorldName(
+            key: NamespacedKey,
+            uuid: UUID,
+        ) = buildString {
             append(rootLocation?.path ?: error("No root path set!"))
             append(File.separator)
             params.forEach {

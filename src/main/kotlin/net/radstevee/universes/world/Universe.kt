@@ -37,7 +37,7 @@ class Universe(
     generatorSettings: String = "{}",
     hardcore: Boolean = false,
     seed: Long = Random.nextLong(),
-    type: WorldType = WorldType.NORMAL
+    type: WorldType = WorldType.NORMAL,
 ) {
     /**
      * The actual id of the world, with the path.

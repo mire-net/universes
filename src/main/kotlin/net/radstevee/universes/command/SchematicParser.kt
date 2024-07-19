@@ -17,10 +17,12 @@ import org.incendo.cloud.suggestion.Suggestion
 /**
  * Command argument parser for schematics.
  */
-class SchematicParser<C> : ArgumentParser<C, Schematic>, BlockingSuggestionProvider<C> {
+class SchematicParser<C> :
+    ArgumentParser<C, Schematic>,
+    BlockingSuggestionProvider<C> {
     override fun parse(
         commandContext: CommandContext<C & Any>,
-        commandInput: CommandInput
+        commandInput: CommandInput,
     ): ArgumentParseResult<Schematic> {
         val input = commandInput.peekString()
         val split = input.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
@@ -29,36 +31,43 @@ class SchematicParser<C> : ArgumentParser<C, Schematic>, BlockingSuggestionProvi
             // Wrong number of ':'
             return ArgumentParseResult.failure(
                 NamespacedKeyParser.NamespacedKeyParseException(
-                    BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_KEY, input, commandContext
-                )
+                    BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_KEY,
+                    input,
+                    commandContext,
+                ),
             )
         }
 
         return runCatching {
-            val ret = when (split.size) {
-                1 -> return@runCatching ArgumentParseResult.failure(
-                    NamespacedKeyParser.NamespacedKeyParseException(
-                        BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_NEED_NAMESPACE,
-                        input,
-                        commandContext
+            val ret =
+                when (split.size) {
+                    1 -> return@runCatching ArgumentParseResult.failure(
+                        NamespacedKeyParser.NamespacedKeyParseException(
+                            BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_NEED_NAMESPACE,
+                            input,
+                            commandContext,
+                        ),
                     )
-                )
 
-                2 -> NamespacedKey(commandInput.readUntilAndSkip(':'), commandInput.readString())
-                else -> return@runCatching ArgumentParseResult.failure(
-                    NamespacedKeyParser.NamespacedKeyParseException(
-                        BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_KEY, input, commandContext
+                    2 -> NamespacedKey(commandInput.readUntilAndSkip(':'), commandInput.readString())
+                    else -> return@runCatching ArgumentParseResult.failure(
+                        NamespacedKeyParser.NamespacedKeyParseException(
+                            BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_KEY,
+                            input,
+                            commandContext,
+                        ),
                     )
+                }
+
+            if (!SchematicManager.isValid(ret)) {
+                return@runCatching ArgumentParseResult.failure(
+                    NamespacedKeyParser.NamespacedKeyParseException(
+                        Caption.of("universes.command.invalid_schematic"),
+                        input,
+                        commandContext,
+                    ),
                 )
             }
-
-            if (!SchematicManager.isValid(ret)) return@runCatching ArgumentParseResult.failure(
-                NamespacedKeyParser.NamespacedKeyParseException(
-                    Caption.of("universes.command.invalid_schematic"),
-                    input,
-                    commandContext
-                )
-            )
 
             // Success!
             ArgumentParseResult.success(SchematicManager[ret]!!)
@@ -67,17 +76,20 @@ class SchematicParser<C> : ArgumentParser<C, Schematic>, BlockingSuggestionProvi
                 NamespacedKeyParser.NamespacedKeyParseException(
                     BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_KEY,
                     input,
-                    commandContext
-                )
+                    commandContext,
+                ),
             )
         }
     }
 
-    override fun suggestions(context: CommandContext<C>, input: CommandInput): MutableIterable<Suggestion> {
-        return SchematicManager.schematics.keys.map {
-            Suggestion.suggestion(it.toString())
-        }.toMutableList()
-    }
+    override fun suggestions(
+        context: CommandContext<C>,
+        input: CommandInput,
+    ): MutableIterable<Suggestion> =
+        SchematicManager.schematics.keys
+            .map {
+                Suggestion.suggestion(it.toString())
+            }.toMutableList()
 
     companion object {
         /**

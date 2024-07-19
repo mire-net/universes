@@ -11,25 +11,25 @@ import net.minecraft.core.BlockPos
  */
 data class PaletteBlockState(
     val offset: BlockPos,
-    val index: Int
+    val index: Int,
 ) {
-    override fun toString(): String {
-        return "PaletteBlockState[#$index, $offset]"
-    }
+    override fun toString(): String = "PaletteBlockState[#$index, $offset]"
 
     companion object {
         /**
          * The codec for this class.
          */
-        val CODEC: Codec<PaletteBlockState> = RecordCodecBuilder.create { instance ->
-            instance.group(
-                BlockPos.CODEC
-                    .fieldOf("offset")
-                    .forGetter(PaletteBlockState::offset),
-                Codec.INT
-                    .fieldOf("index")
-                    .forGetter(PaletteBlockState::index)
-            ).apply(instance, ::PaletteBlockState)
-        }
+        val CODEC: Codec<PaletteBlockState> =
+            RecordCodecBuilder.create { instance ->
+                instance
+                    .group(
+                        BlockPos.CODEC
+                            .fieldOf("offset")
+                            .forGetter(PaletteBlockState::offset),
+                        Codec.INT
+                            .fieldOf("index")
+                            .forGetter(PaletteBlockState::index),
+                    ).apply(instance, ::PaletteBlockState)
+            }
     }
 }

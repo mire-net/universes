@@ -51,8 +51,9 @@ internal object UniversesCommand {
 
                         ctx.sender().sendMessage(
                             text(
-                                "Schematic placed at ${location.x.roundToInt()}, ${location.y.roundToInt()}, ${location.z.roundToInt()}!", GREEN
-                            )
+                                "Schematic placed at ${location.x.roundToInt()}, ${location.y.roundToInt()}, ${location.z.roundToInt()}!",
+                                GREEN,
+                            ),
                         )
                     }
                 }
@@ -72,7 +73,12 @@ internal object UniversesCommand {
                             return@handler
                         }
 
-                        SchematicManager.delete(SchematicManager.schematics.filterValues { it == schematic }.keys.first())
+                        SchematicManager.delete(
+                            SchematicManager.schematics
+                                .filterValues { it == schematic }
+                                .keys
+                                .first(),
+                        )
 
                         ctx.sender().sendMessage(text("Schematic deleted successfully!", GREEN))
                     }
@@ -93,16 +99,21 @@ internal object UniversesCommand {
                             return@handler
                         }
                         val key = ctx.get<NamespacedKey>("key")
-                        val selection = Selection(SelectionType.SCHEMATIC, key, player, player.location.toBlockPos(), player.location.toBlockPos())
+                        val selection =
+                            Selection(SelectionType.SCHEMATIC, key, player, player.location.toBlockPos(), player.location.toBlockPos())
                         val handler = SelectionHandler(selection)
                         handler.register()
-                        if (SelectionManager[player] == null) SelectionManager[player] = mutableListOf(selection to handler)
-                        else SelectionManager[player]!!.add(selection to handler)
+                        if (SelectionManager[player] == null) {
+                            SelectionManager[player] = mutableListOf(selection to handler)
+                        } else {
+                            SelectionManager[player]!!.add(selection to handler)
+                        }
                         SelectionType.entries.forEach { player.inventory.addItem(it.wand) }
                         player.sendMessage(
                             text(
-                                "Schematic selection has been created! Use the wand to select an area and type /universes schematic save.", GREEN
-                            )
+                                "Schematic selection has been created! Use the wand to select an area and type /universes schematic save.",
+                                GREEN,
+                            ),
                         )
                     }
                 }
@@ -116,16 +127,23 @@ internal object UniversesCommand {
 
                     handler { ctx ->
                         val player = ctx.sender() as? Player ?: return@handler
-                        val (selection, handler) = SelectionManager[player]?.first { it.first.type == SelectionType.SCHEMATIC } ?: run {
-                            player.sendMessage(text("You do not have an open selection!", RED))
-                            return@handler
-                        }
-                        val start = Location(player.world, selection.start.x.toDouble(), selection.start.y.toDouble(), selection.start.z.toDouble())
+                        val (selection, handler) =
+                            SelectionManager[player]?.first { it.first.type == SelectionType.SCHEMATIC } ?: run {
+                                player.sendMessage(text("You do not have an open selection!", RED))
+                                return@handler
+                            }
+                        val start =
+                            Location(player.world, selection.start.x.toDouble(), selection.start.y.toDouble(), selection.start.z.toDouble())
                         val end = Location(player.world, selection.end.x.toDouble(), selection.end.y.toDouble(), selection.end.z.toDouble())
-                        val regions = SelectionManager[player]?.filter { it.first.type == SelectionType.REGION }
-                            ?.associate { it.first.key to Region(it.first.key, BlockBox(it.first.start, it.first.end), it.first.data) } ?: mapOf()
-                        val markers = SelectionManager[player]?.filter { it.first.type == SelectionType.MARKER }
-                            ?.associate { it.first.key to Marker(it.first.key, it.first.start, it.first.data) } ?: mapOf()
+                        val regions =
+                            SelectionManager[player]
+                                ?.filter { it.first.type == SelectionType.REGION }
+                                ?.associate { it.first.key to Region(it.first.key, BlockBox(it.first.start, it.first.end), it.first.data) }
+                                ?: mapOf()
+                        val markers =
+                            SelectionManager[player]
+                                ?.filter { it.first.type == SelectionType.MARKER }
+                                ?.associate { it.first.key to Marker(it.first.key, it.first.start, it.first.data) } ?: mapOf()
 
                         SelectionManager[player]?.forEach {
                             Universes.selectionEntities.remove(it.first.nameTag)
@@ -136,7 +154,9 @@ internal object UniversesCommand {
                         handler.unregister()
                         selection.task.cancel()
                         SelectionType.entries.forEach { player.inventory.remove(it.wand) }
-                        player.sendMessage(text("Schematic saved to schematics/${selection.key.namespace}/${selection.key.key}.nbt!", GREEN))
+                        player.sendMessage(
+                            text("Schematic saved to schematics/${selection.key.namespace}/${selection.key.key}.nbt!", GREEN),
+                        )
 
                         SelectionManager[player]?.forEach { it.first.task.cancel() }
                         SelectionManager[player] = mutableListOf()
@@ -166,16 +186,20 @@ internal object UniversesCommand {
                             player.sendMessage(text("You do not have an open selection!", RED))
                             return@handler
                         }
-                        val selection = Selection(SelectionType.REGION, key, player, player.location.toBlockPos(), player.location.toBlockPos())
+                        val selection =
+                            Selection(SelectionType.REGION, key, player, player.location.toBlockPos(), player.location.toBlockPos())
                         val handler = SelectionHandler(selection)
                         handler.register()
-                        if (SelectionManager[player] == null) SelectionManager[player] = mutableListOf(selection to handler)
-                        else SelectionManager[player]!!.add(selection to handler)
+                        if (SelectionManager[player] == null) {
+                            SelectionManager[player] = mutableListOf(selection to handler)
+                        } else {
+                            SelectionManager[player]!!.add(selection to handler)
+                        }
                         player.sendMessage(
                             text(
                                 "Region selection has been created! Use the wand to select an area and use /universes schematic selection finish ${selection.key} to finish it!",
-                                GREEN
-                            )
+                                GREEN,
+                            ),
                         )
                     }
                 }
@@ -199,16 +223,20 @@ internal object UniversesCommand {
                             player.sendMessage(text("You do not have an open selection!", RED))
                             return@handler
                         }
-                        val selection = Selection(SelectionType.MARKER, key, player, player.location.toBlockPos(), player.location.toBlockPos())
+                        val selection =
+                            Selection(SelectionType.MARKER, key, player, player.location.toBlockPos(), player.location.toBlockPos())
                         val handler = SelectionHandler(selection)
                         handler.register()
-                        if (SelectionManager[player] == null) SelectionManager[player] = mutableListOf(selection to handler)
-                        else SelectionManager[player]!!.add(selection to handler)
+                        if (SelectionManager[player] == null) {
+                            SelectionManager[player] = mutableListOf(selection to handler)
+                        } else {
+                            SelectionManager[player]!!.add(selection to handler)
+                        }
                         player.sendMessage(
                             text(
                                 "Marker selection has been created! Use the wand to select a block and use /universes schematic selection finish ${selection.key} to finish it!",
-                                GREEN
-                            )
+                                GREEN,
+                            ),
                         )
                     }
                 }
@@ -223,18 +251,19 @@ internal object UniversesCommand {
 
                         handler { ctx ->
                             val player = ctx.sender() as? Player ?: return@handler
-                            val (selection, handler) = SelectionManager[player]?.last { !it.first.finished } ?: run {
-                                player.sendMessage(text("You do not have an open selection!", RED))
-                                return@handler
-                            }
+                            val (selection, handler) =
+                                SelectionManager[player]?.last { !it.first.finished } ?: run {
+                                    player.sendMessage(text("You do not have an open selection!", RED))
+                                    return@handler
+                                }
 
                             selection.finished = true
                             handler.unregister()
                             player.sendMessage(
                                 text(
                                     "Selection for ${selection.key} has been marked as finished! Use /universes schematic selection reopen ${selection.key} to reopen it!",
-                                    GREEN
-                                )
+                                    GREEN,
+                                ),
                             )
                         }
                     }
@@ -260,8 +289,8 @@ internal object UniversesCommand {
                             player.sendMessage(
                                 text(
                                     "Selection for ${selection.key} has been reopened! Use /universes schematic selection finish ${selection.key} to finish it!",
-                                    GREEN
-                                )
+                                    GREEN,
+                                ),
                             )
                         }
                     }
@@ -291,8 +320,9 @@ internal object UniversesCommand {
 
                                 player.sendMessage(
                                     text(
-                                        "Data successfully added!", GREEN
-                                    )
+                                        "Data successfully added!",
+                                        GREEN,
+                                    ),
                                 )
                             }
                         }
@@ -323,8 +353,9 @@ internal object UniversesCommand {
 
                                 player.sendMessage(
                                     text(
-                                        "Data successfully added!", GREEN
-                                    )
+                                        "Data successfully added!",
+                                        GREEN,
+                                    ),
                                 )
                             }
                         }
@@ -355,8 +386,9 @@ internal object UniversesCommand {
 
                                 player.sendMessage(
                                     text(
-                                        "Data successfully added!", GREEN
-                                    )
+                                        "Data successfully added!",
+                                        GREEN,
+                                    ),
                                 )
                             }
                         }
@@ -380,9 +412,12 @@ internal object UniversesCommand {
                             return@handler
                         }
 
-                        Bukkit.getScheduler().runTask(Universes.plugin, Runnable {
-                            SchematicManager.edit(schematic, player)
-                        })
+                        Bukkit.getScheduler().runTask(
+                            Universes.plugin,
+                            Runnable {
+                                SchematicManager.edit(schematic, player)
+                            },
+                        )
 
                         player.sendMessage(text("Now editing schematic ${schematic.key}!", GREEN))
                     }

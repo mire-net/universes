@@ -86,7 +86,10 @@ interface DataHolder {
      * @param type The type of the list elements.
      * @return The list if it exists, null otherwise.
      */
-    fun getList(key: NamespacedKey, type: Int) = data[key]?.getList("value", type)
+    fun getList(
+        key: NamespacedKey,
+        type: Int,
+    ) = data[key]?.getList("value", type)
 
     /**
      * Gets a long array from the data map.
@@ -121,7 +124,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The integer value to put.
      */
-    fun putInt(key: NamespacedKey, value: Int) {
+    fun putInt(
+        key: NamespacedKey,
+        value: Int,
+    ) {
         data[key] = CompoundTag().apply { putInt("value", value) }
     }
 
@@ -130,7 +136,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The byte value to put.
      */
-    fun putByte(key: NamespacedKey, value: Byte) {
+    fun putByte(
+        key: NamespacedKey,
+        value: Byte,
+    ) {
         data[key] = CompoundTag().apply { putByte("value", value) }
     }
 
@@ -139,7 +148,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The long value to put.
      */
-    fun putLong(key: NamespacedKey, value: Long) {
+    fun putLong(
+        key: NamespacedKey,
+        value: Long,
+    ) {
         data[key] = CompoundTag().apply { putLong("value", value) }
     }
 
@@ -148,7 +160,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The boolean value to put.
      */
-    fun putBoolean(key: NamespacedKey, value: Boolean) {
+    fun putBoolean(
+        key: NamespacedKey,
+        value: Boolean,
+    ) {
         data[key] = CompoundTag().apply { putBoolean("value", value) }
     }
 
@@ -157,7 +172,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The byte array to put.
      */
-    fun putByteArray(key: NamespacedKey, value: ByteArray) {
+    fun putByteArray(
+        key: NamespacedKey,
+        value: ByteArray,
+    ) {
         data[key] = CompoundTag().apply { putByteArray("value", value) }
     }
 
@@ -166,7 +184,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The compound tag to put.
      */
-    fun putCompound(key: NamespacedKey, value: CompoundTag) {
+    fun putCompound(
+        key: NamespacedKey,
+        value: CompoundTag,
+    ) {
         data[key] = CompoundTag().apply { put("value", value) }
     }
 
@@ -175,7 +196,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The double value to put.
      */
-    fun putDouble(key: NamespacedKey, value: Double) {
+    fun putDouble(
+        key: NamespacedKey,
+        value: Double,
+    ) {
         data[key] = CompoundTag().apply { putDouble("value", value) }
     }
 
@@ -184,7 +208,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The float value to put.
      */
-    fun putFloat(key: NamespacedKey, value: Float) {
+    fun putFloat(
+        key: NamespacedKey,
+        value: Float,
+    ) {
         data[key] = CompoundTag().apply { putFloat("value", value) }
     }
 
@@ -193,7 +220,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The integer array to put.
      */
-    fun putIntArray(key: NamespacedKey, value: IntArray) {
+    fun putIntArray(
+        key: NamespacedKey,
+        value: IntArray,
+    ) {
         data[key] = CompoundTag().apply { putIntArray("value", value) }
     }
 
@@ -202,7 +232,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The long array to put.
      */
-    fun putLongArray(key: NamespacedKey, value: LongArray) {
+    fun putLongArray(
+        key: NamespacedKey,
+        value: LongArray,
+    ) {
         data[key] = CompoundTag().apply { putLongArray("value", value) }
     }
 
@@ -211,7 +244,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The short value to put.
      */
-    fun putShort(key: NamespacedKey, value: Short) {
+    fun putShort(
+        key: NamespacedKey,
+        value: Short,
+    ) {
         data[key] = CompoundTag().apply { putShort("value", value) }
     }
 
@@ -220,7 +256,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The string to put.
      */
-    fun putString(key: NamespacedKey, value: String) {
+    fun putString(
+        key: NamespacedKey,
+        value: String,
+    ) {
         data[key] = CompoundTag().apply { putString("value", value) }
     }
 
@@ -229,7 +268,10 @@ interface DataHolder {
      * @param key The key for the attribute.
      * @param value The UUID to put.
      */
-    fun putUUID(key: NamespacedKey, value: UUID) {
+    fun putUUID(
+        key: NamespacedKey,
+        value: UUID,
+    ) {
         data[key] = CompoundTag().apply { putUUID("value", value) }
     }
 
@@ -245,7 +287,10 @@ interface DataHolder {
         /**
          * Codec for [NamespacedKey].
          */
-        val NAMESPACED_KEY_CODEC: Codec<NamespacedKey> = Codec.STRING.comapFlatMap({ DataResult.success(NamespacedKey.fromString(it)) }, NamespacedKey::toString)
+        val NAMESPACED_KEY_CODEC: Codec<NamespacedKey> =
+            Codec.STRING.comapFlatMap({
+                DataResult.success(NamespacedKey.fromString(it))
+            }, NamespacedKey::toString)
 
         /**
          * The codec for this class.

@@ -17,12 +17,16 @@ import org.incendo.cloud.suggestion.Suggestion
 /**
  * Command argument parser for schematics.
  */
-class SchematicElementParser<C> : ArgumentParser<C, NamespacedKey>, BlockingSuggestionProvider<C> {
+class SchematicElementParser<C> :
+    ArgumentParser<C, NamespacedKey>,
+    BlockingSuggestionProvider<C> {
     override fun parse(
         commandContext: CommandContext<C & Any>,
-        commandInput: CommandInput
+        commandInput: CommandInput,
     ): ArgumentParseResult<NamespacedKey> {
-        val player = commandContext.sender() as? Player ?: return ArgumentParseResult.failure(IllegalArgumentException("command can only be called by players"))
+        val player =
+            commandContext.sender() as? Player
+                ?: return ArgumentParseResult.failure(IllegalArgumentException("command can only be called by players"))
         val input = commandInput.peekString()
         val split = input.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         val maxSemi = if (split.size > 1) 1 else 0
@@ -30,38 +34,45 @@ class SchematicElementParser<C> : ArgumentParser<C, NamespacedKey>, BlockingSugg
             // Wrong number of ':'
             return ArgumentParseResult.failure(
                 NamespacedKeyParser.NamespacedKeyParseException(
-                    BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_KEY, input, commandContext
-                )
+                    BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_KEY,
+                    input,
+                    commandContext,
+                ),
             )
         }
 
         return runCatching {
-            val ret = when (split.size) {
-                1 -> return@runCatching ArgumentParseResult.failure(
-                    NamespacedKeyParser.NamespacedKeyParseException(
-                        BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_NEED_NAMESPACE,
-                        input,
-                        commandContext
+            val ret =
+                when (split.size) {
+                    1 -> return@runCatching ArgumentParseResult.failure(
+                        NamespacedKeyParser.NamespacedKeyParseException(
+                            BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_NEED_NAMESPACE,
+                            input,
+                            commandContext,
+                        ),
                     )
-                )
 
-                2 -> NamespacedKey(commandInput.readUntilAndSkip(':'), commandInput.readString())
-                else -> return@runCatching ArgumentParseResult.failure(
-                    NamespacedKeyParser.NamespacedKeyParseException(
-                        BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_KEY, input, commandContext
+                    2 -> NamespacedKey(commandInput.readUntilAndSkip(':'), commandInput.readString())
+                    else -> return@runCatching ArgumentParseResult.failure(
+                        NamespacedKeyParser.NamespacedKeyParseException(
+                            BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_KEY,
+                            input,
+                            commandContext,
+                        ),
                     )
-                )
-            }
+                }
 
             val elements = SelectionManager[player]?.map { it.first.key } ?: listOf()
 
-            if (ret !in elements) return@runCatching ArgumentParseResult.failure(
-                NamespacedKeyParser.NamespacedKeyParseException(
-                    Caption.of("universes.command.invalid_schematic_element"),
-                    input,
-                    commandContext
+            if (ret !in elements) {
+                return@runCatching ArgumentParseResult.failure(
+                    NamespacedKeyParser.NamespacedKeyParseException(
+                        Caption.of("universes.command.invalid_schematic_element"),
+                        input,
+                        commandContext,
+                    ),
                 )
-            )
+            }
 
             // Success!
             ArgumentParseResult.success(ret)
@@ -70,18 +81,22 @@ class SchematicElementParser<C> : ArgumentParser<C, NamespacedKey>, BlockingSugg
                 NamespacedKeyParser.NamespacedKeyParseException(
                     BukkitCaptionKeys.ARGUMENT_PARSE_FAILURE_NAMESPACED_KEY_KEY,
                     input,
-                    commandContext
-                )
+                    commandContext,
+                ),
             )
         }
     }
 
-    override fun suggestions(context: CommandContext<C>, input: CommandInput): MutableIterable<Suggestion> {
+    override fun suggestions(
+        context: CommandContext<C>,
+        input: CommandInput,
+    ): MutableIterable<Suggestion> {
         val player = context.sender() as? Player ?: return mutableListOf()
 
-        return SelectionManager[player]?.map {
-            Suggestion.suggestion(it.first.key.toString())
-        }?.toMutableList() ?: mutableListOf()
+        return SelectionManager[player]
+            ?.map {
+                Suggestion.suggestion(it.first.key.toString())
+            }?.toMutableList() ?: mutableListOf()
     }
 
     companion object {

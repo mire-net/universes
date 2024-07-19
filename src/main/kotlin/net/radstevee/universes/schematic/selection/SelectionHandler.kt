@@ -9,7 +9,9 @@ import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 
-class SelectionHandler(private val selection: Selection) : Listener {
+class SelectionHandler(
+    private val selection: Selection,
+) : Listener {
     fun register() {
         Bukkit.getPluginManager().registerEvents(this, Universes.plugin)
     }
