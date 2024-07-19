@@ -1,8 +1,8 @@
 package net.radstevee.universes.command
 
-import net.radstevee.universes.schematic.Schematic
-import net.radstevee.universes.schematic.SchematicManager
+import net.radstevee.universes.schematic.selection.SelectionManager
 import org.bukkit.NamespacedKey
+import org.bukkit.entity.Player
 import org.incendo.cloud.bukkit.BukkitCaptionKeys
 import org.incendo.cloud.bukkit.parser.NamespacedKeyParser
 import org.incendo.cloud.caption.Caption
@@ -17,11 +17,12 @@ import org.incendo.cloud.suggestion.Suggestion
 /**
  * Command argument parser for schematics.
  */
-class SchematicParser<C> : ArgumentParser<C, Schematic>, BlockingSuggestionProvider<C> {
+class SchematicElementParser<C> : ArgumentParser<C, NamespacedKey>, BlockingSuggestionProvider<C> {
     override fun parse(
         commandContext: CommandContext<C & Any>,
         commandInput: CommandInput
-    ): ArgumentParseResult<Schematic> {
+    ): ArgumentParseResult<NamespacedKey> {
+        val player = commandContext.sender() as? Player ?: return ArgumentParseResult.failure(IllegalArgumentException("command can only be called by players"))
         val input = commandInput.peekString()
         val split = input.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         val maxSemi = if (split.size > 1) 1 else 0
@@ -52,16 +53,18 @@ class SchematicParser<C> : ArgumentParser<C, Schematic>, BlockingSuggestionProvi
                 )
             }
 
-            if (!SchematicManager.isValid(ret)) return@runCatching ArgumentParseResult.failure(
+            val elements = SelectionManager[player]?.map { it.first.key } ?: listOf()
+
+            if (ret !in elements) return@runCatching ArgumentParseResult.failure(
                 NamespacedKeyParser.NamespacedKeyParseException(
-                    Caption.of("universes.command.invalid_schematic"),
+                    Caption.of("universes.command.invalid_schematic_element"),
                     input,
                     commandContext
                 )
             )
 
             // Success!
-            ArgumentParseResult.success(SchematicManager[ret]!!)
+            ArgumentParseResult.success(ret)
         }.getOrElse {
             ArgumentParseResult.failure(
                 NamespacedKeyParser.NamespacedKeyParseException(
@@ -74,15 +77,17 @@ class SchematicParser<C> : ArgumentParser<C, Schematic>, BlockingSuggestionProvi
     }
 
     override fun suggestions(context: CommandContext<C>, input: CommandInput): MutableIterable<Suggestion> {
-        return SchematicManager.schematics.keys.map {
-            Suggestion.suggestion(it.toString())
-        }.toMutableList()
+        val player = context.sender() as? Player ?: return mutableListOf()
+
+        return SelectionManager[player]?.map {
+            Suggestion.suggestion(it.first.key.toString())
+        }?.toMutableList() ?: mutableListOf()
     }
 
     companion object {
         /**
          * Creates a new schematic parser.
          */
-        fun <C> schematicParser() = ParserDescriptor.of(SchematicParser<C>(), Schematic::class.java)
+        fun <C> schematicElementParser() = ParserDescriptor.of(SchematicElementParser<C>(), NamespacedKey::class.java)
     }
 }

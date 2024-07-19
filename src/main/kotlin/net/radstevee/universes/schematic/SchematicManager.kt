@@ -106,7 +106,7 @@ object SchematicManager {
      * @param key The schematic key.
      */
     fun delete(key: NamespacedKey) {
-        Path("schematics/${key.namespace}/${key.key}.nbt").deleteExisting()
+        File("schematics/${key.namespace}/${key.key}.nbt").delete()
         _schematics.remove(key)
     }
 
@@ -154,7 +154,7 @@ object SchematicManager {
         }
         val blockBox = BlockBox(min, max)
         val size = Vec3i(blockBox.sizeX(), blockBox.sizeY(), blockBox.sizeZ())
-        val schematic = Schematic(palette, paletteBlockStates, size, mutableMapOf(), data.toMutableMap(), mutableMapOf())
+        val schematic = Schematic(key, palette, paletteBlockStates, size, mutableMapOf(), data.toMutableMap(), mutableMapOf())
         regions.forEach { schematic.addRegion(blockBox, it.key, it.value) }
         markers.forEach { schematic.addMarker(blockBox, it.key, it.value) }
         save(schematic, key)

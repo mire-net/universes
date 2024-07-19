@@ -21,7 +21,7 @@ class SelectionHandler(private val selection: Selection) : Listener {
     @EventHandler
     fun onInteract(event: PlayerInteractEvent) {
         if (event.player != selection.player) return
-        if (event.player.inventory.itemInMainHand.type != selection.type.wandType) return
+        if (event.player.inventory.itemInMainHand.type != selection.type.wand.type) return
         val block = event.clickedBlock ?: return
 
         when (event.action) {

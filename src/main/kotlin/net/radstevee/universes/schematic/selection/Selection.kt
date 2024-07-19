@@ -1,7 +1,9 @@
 package net.radstevee.universes.schematic.selection
 
+import net.kyori.adventure.text.Component.text
 import net.minecraft.core.BlockBox
 import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
 import net.radstevee.universes.Universes
 import org.bukkit.Bukkit
 import org.bukkit.Color
@@ -10,12 +12,20 @@ import org.bukkit.NamespacedKey
 import org.bukkit.Particle
 import org.bukkit.Particle.DustOptions
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import org.bukkit.util.Vector
 import kotlin.math.roundToInt
 
-class Selection(val type: SelectionType, val key: NamespacedKey, val player: Player, var start: BlockPos, var end: BlockPos) {
+class Selection(
+    val type: SelectionType,
+    val key: NamespacedKey,
+    val player: Player,
+    var start: BlockPos,
+    var end: BlockPos,
+    var finished: Boolean = false,
+    var data: MutableMap<NamespacedKey, CompoundTag> = mutableMapOf()
+) {
     val color = SelectionManager.getColor(player, this)
-
     val task = Bukkit.getScheduler().runTaskTimer(Universes.plugin, Runnable {
         displayParticles()
     }, 20, 0)
@@ -42,25 +52,37 @@ class Selection(val type: SelectionType, val key: NamespacedKey, val player: Pla
 
     private fun drawParticleLines(path: Vector, color: Color, vararg origins: Vector) {
         origins.forEach { origin ->
-	    for (distance in 0 until path.length().roundToInt()) {
+            for (distance in 0 until path.length().roundToInt()) {
                 val position = origin.clone().add(path.clone().normalize().multiply(distance))
 
                 player.spawnParticle(Particle.DUST, position.toLocation(player.world), 1, DustOptions(color, 1f))
-	    }
+            }
         }
     }
 }
 
 enum class SelectionType {
     SCHEMATIC {
-        override val wandType = Material.BLAZE_ROD
+        override val wand = ItemStack(Material.BLAZE_ROD).apply {
+            editMeta {
+                it.displayName(text("Schematic Selector"))
+            }
+        }
     },
     REGION {
-        override val wandType = Material.BAMBOO
+        override val wand = ItemStack(Material.BAMBOO).apply {
+            editMeta {
+                it.displayName(text("Region Selector"))
+            }
+        }
     },
     MARKER {
-        override val wandType = Material.ARROW
+        override val wand = ItemStack(Material.ARROW).apply {
+            editMeta {
+                it.displayName(text("Marker Selector"))
+            }
+        }
     };
 
-    abstract val wandType: Material
+    abstract val wand: ItemStack
 }

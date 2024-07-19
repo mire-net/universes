@@ -9,12 +9,12 @@ import net.minecraft.core.Vec3i
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.block.state.BlockState
 import net.radstevee.universes.DataHolder
+import net.radstevee.universes.DataHolder.Companion.NAMESPACED_KEY_CODEC
 import net.radstevee.universes.Universes
 import net.radstevee.universes.add
 import net.radstevee.universes.schematic.state.PaletteBlockState
 import net.radstevee.universes.schematic.state.PlacedSchematic
 import net.radstevee.universes.toBlockPos
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
 import org.bukkit.craftbukkit.block.CraftBlockState
@@ -27,13 +27,14 @@ import org.bukkit.craftbukkit.block.CraftBlockState
  * @param entityTags The entities to be serialised, if they get saved.
  */
 data class Schematic(
+    override val key: NamespacedKey,
     val palette: List<BlockState>,
     val paletteStates: List<PaletteBlockState>,
     val size: Vec3i,
     private val _regions: MutableMap<NamespacedKey, Region> = mutableMapOf(),
     override val data: MutableMap<NamespacedKey, CompoundTag> = mutableMapOf(),
     private val _markers: MutableMap<NamespacedKey, Marker> = mutableMapOf(),
-) : DataHolder {
+) : DataHolder, SchematicElement {
     /**
      * The center location of this schematic.
      */
@@ -61,7 +62,6 @@ data class Schematic(
                 (position.block.state as CraftBlockState).setData(state)
             }
         }
-
         val blockPos = location.toBlockPos()
         return PlacedSchematic(this, BlockBox(blockPos, blockPos.add(size)))
     }
@@ -82,7 +82,7 @@ data class Schematic(
      * @param marker The marker.
      */
     fun addMarker(schematicBox: BlockBox, key: NamespacedKey, marker: Marker) {
-        _markers[key] = Marker(marker.pos.subtract(schematicBox.min), marker.data)
+        _markers[key] = Marker(key, marker.pos.subtract(schematicBox.min), marker.data)
     }
 
     /**
@@ -91,7 +91,7 @@ data class Schematic(
      * @param region The region.
      */
     fun addRegion(schematicBox: BlockBox, key: NamespacedKey, region: Region) {
-        _regions[key] = Region(BlockBox(region.box.min.subtract(schematicBox.min), region.box.max.subtract(schematicBox.max)), region.data)
+        _regions[key] = Region(key, BlockBox(region.box.min.subtract(schematicBox.min), region.box.max.subtract(schematicBox.max)), region.data)
     }
 
     companion object {
@@ -100,22 +100,34 @@ data class Schematic(
          */
         val CODEC: Codec<Schematic> = RecordCodecBuilder.create { instance ->
             instance.group(
-                BlockState.CODEC.listOf().fieldOf("palette").forGetter(Schematic::palette),
-                PaletteBlockState.CODEC.listOf().fieldOf("states").forGetter(Schematic::paletteStates),
-                Vec3i.CODEC.fieldOf("size").forGetter(Schematic::size),
-                Codec.unboundedMap(
-                    DataHolder.NAMESPACED_KEY_CODEC, Region.CODEC
-                ).fieldOf("regions").forGetter(Schematic::_regions),
-                DataHolder.CODEC.fieldOf("data").forGetter(Schematic::data),
-                Codec.unboundedMap(
-                    DataHolder.NAMESPACED_KEY_CODEC, Marker.CODEC
-                ).fieldOf("markers").forGetter(Schematic::_markers)
+                NAMESPACED_KEY_CODEC
+                    .fieldOf("key")
+                    .forGetter(Schematic::key),
+                BlockState.CODEC.listOf()
+                    .fieldOf("palette")
+                    .forGetter(Schematic::palette),
+                PaletteBlockState.CODEC.listOf()
+                    .fieldOf("states")
+                    .forGetter(Schematic::paletteStates),
+                Vec3i.CODEC
+                    .fieldOf("size")
+                    .forGetter(Schematic::size),
+                Codec
+                    .unboundedMap(
+                        NAMESPACED_KEY_CODEC, Region.CODEC
+                    )
+                    .fieldOf("regions")
+                    .forGetter(Schematic::_regions),
+                DataHolder.CODEC
+                    .fieldOf("data")
+                    .forGetter(Schematic::data),
+                Codec
+                    .unboundedMap(
+                        NAMESPACED_KEY_CODEC, Marker.CODEC
+                    )
+                    .fieldOf("markers")
+                    .forGetter(Schematic::_markers)
             ).apply(instance, ::Schematic)
         }
-
-        /**
-         * An empty schematic.
-         */
-        val EMPTY = Schematic(emptyList(), emptyList(), Vec3i.ZERO)
     }
 }

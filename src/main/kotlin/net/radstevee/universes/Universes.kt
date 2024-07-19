@@ -59,7 +59,14 @@ object Universes {
         Bukkit.getPluginManager().addPermissions(listOf(
             "universes.command.schematic.save",
             "universes.command.schematic.place",
-            "universes.command.schematic.delete"
+            "universes.command.schematic.delete",
+            "universes.command.schematic.new",
+            "universes.command.schematic.region",
+            "universes.command.schematic.marker",
+            "universes.command.schematic.selection.finish",
+            "universes.command.schematic.selection.reopen",
+            "universes.command.schematic.selection.data.add.literal",
+            "universes.command.schematic.selection.data.add.int",
         ).map {
             Permission(it, PermissionDefault.OP)
         })
@@ -76,7 +83,10 @@ object Universes {
             CaptionProvider.constantProvider<CommandSender>(
                 Caption.of("universes.command.invalid_schematic"), "That schematic is corrupted or invalid!"
             ), CaptionProvider.constantProvider(
-                Caption.of("universes.command.invalid_schematic_key"), "invalid schematic key!"
+                Caption.of("universes.command.invalid_schematic_key"), "Invalid schematic key!"
+            ),
+            CaptionProvider.constantProvider(
+                Caption.of("universes.command.invalid_schematic_element"), "Invalid schematic element!"
             )
         ).forEach {
             commandManager.captionRegistry().registerProvider(it)
