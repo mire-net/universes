@@ -31,6 +31,6 @@ class PlacedSchematic(
      */
     fun getRegion(key: NamespacedKey) =
         schematic.regions[key]?.apply {
-            box = BlockBox(this.box.min.add(box.min), this.box.max.add(box.max))
+            box = BlockBox(this.box.min.add(box.min), this.box.max.add(box.min))
         }
 }
