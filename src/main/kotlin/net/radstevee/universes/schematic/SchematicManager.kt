@@ -206,7 +206,7 @@ object SchematicManager {
         player: Player,
     ) {
         val universe = Universe(NamespacedKey("universes", "${schematic.key.toString().replace(":", "_")}-editor"))
-        schematic.place(Location(universe.world, 0.0, 0.0, 0.0))
+        val placed = schematic.place(Location(universe.world, 0.0, 0.0, 0.0))
         player.gameMode = GameMode.CREATIVE
         player.teleport(schematic.center.add(Vec3i(0, schematic.size.y / 2, 0)).toLocation(universe.world))
         SelectionType.entries.forEach { player.inventory.addItem(it.wand) }
@@ -234,7 +234,10 @@ object SchematicManager {
                     it.value.data,
                 )
             }
-        val selections = (markerSelections + regionSelections).associateWith { SelectionHandler(it) }
+        val schematicSelection =
+            Selection(SelectionType.SCHEMATIC, schematic.key, player, placed.box.min, placed.box.max, true, schematic.data)
+
+        val selections = (markerSelections + regionSelections + schematicSelection).associateWith { SelectionHandler(it) }
         selections.forEach { it.value.register() }
         SelectionManager[player] = selections.toList().toMutableList()
         SelectionManager.editors[player] = true to player.location

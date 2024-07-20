@@ -104,6 +104,7 @@ data class Schematic(
      * Adds a region to this schematic.
      * @param key The region key.
      * @param region The region.
+     * @param schematicBox The selection box of the schematic.
      */
     fun addRegion(
         schematicBox: BlockBox,
@@ -111,7 +112,14 @@ data class Schematic(
         region: Region,
     ) {
         _regions[key] =
-            Region(key, BlockBox(region.box.min.subtract(schematicBox.min), region.box.max.subtract(schematicBox.max)), region.data)
+            Region(
+                key,
+                BlockBox(
+                    region.box.min.subtract(schematicBox.min),
+                    region.box.max.subtract(schematicBox.min),
+                ),
+                region.data,
+            )
     }
 
     companion object {

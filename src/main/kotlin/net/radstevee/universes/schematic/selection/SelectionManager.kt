@@ -20,7 +20,7 @@ object SelectionManager {
 
     operator fun get(player: Player) = _selections[player]
 
-    // TODO: implement actual coloring
+    // TODO: implement actual coloring based on already used colors
     fun getColor(
         player: Player,
         selection: Selection,
@@ -32,11 +32,10 @@ object SelectionManager {
         Color.GREEN,
         Color.LIME,
         Color.FUCHSIA,
-        Color.BLACK,
         Color.ORANGE,
-        Color.SILVER,
         Color.MAROON,
-        Color.NAVY,
         Color.TEAL,
+        Color.WHITE,
+        Color.YELLOW,
     ).random()
 }
