@@ -5,26 +5,29 @@ plugins {
 }
 
 group = "net.radstevee"
-version = "0.3.5"
+version = "0.4.0"
 
 repositories {
     mavenLocal()
     mavenCentral()
 
-    maven {
-        name = "papermc-repo"
-        url = uri("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://oss.sonatype.org/content/repositories/snapshots/") {
+        name = "sonatype-snapshots"
+        mavenContent {
+            snapshotsOnly()
+        }
     }
 }
 
 dependencies {
-    implementation("org.incendo:cloud-paper:2.0.0-beta.7")
-    implementation("org.incendo:cloud-kotlin-extensions:2.0.0-rc.1")
+    implementation("org.incendo:cloud-paper:2.0.0-SNAPSHOT")
+    implementation("org.incendo:cloud-kotlin-extensions:2.0.0-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
     implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.18.0")
     implementation("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.18.0")
 
-    paperweight.paperDevBundle("1.20.6-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21-R0.1-SNAPSHOT")
 }
 
 kotlin {

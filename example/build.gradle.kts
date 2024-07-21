@@ -16,8 +16,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
-    implementation("net.radstevee:universes:0.3.5")
+    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
+    implementation("net.radstevee:universes:0.4.0")
 }
 
 val targetJavaVersion = 21
@@ -48,8 +48,5 @@ tasks.processResources {
 }
 
 tasks.runServer {
-    // Configure the Minecraft version for our task.
-    // This is the only required configuration besides applying the plugin.
-    // Your plugin's jar (or shadowJar if present) will be used automatically.
-    minecraftVersion("1.20.6")
+    minecraftVersion("1.21")
 }

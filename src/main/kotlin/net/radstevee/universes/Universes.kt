@@ -3,6 +3,7 @@ package net.radstevee.universes
 import com.mojang.serialization.Decoder
 import com.mojang.serialization.DynamicOps
 import com.mojang.serialization.Encoder
+import io.papermc.paper.command.brigadier.CommandSourceStack
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Vec3i
 import net.minecraft.world.phys.AABB
@@ -20,8 +21,6 @@ import org.bukkit.permissions.Permission
 import org.bukkit.permissions.PermissionDefault
 import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.brigadier.BrigadierSetting
-import org.incendo.cloud.brigadier.CloudBrigadierManager
-import org.incendo.cloud.bukkit.CloudBukkitCapabilities
 import org.incendo.cloud.caption.Caption
 import org.incendo.cloud.caption.CaptionProvider
 import org.incendo.cloud.execution.ExecutionCoordinator
@@ -83,17 +82,13 @@ object Universes {
         )
 
         commandManager =
-            PaperCommandManager.createNative(
-                plugin,
-                ExecutionCoordinator.simpleCoordinator(),
-            )
-        if (commandManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) commandManager.registerBrigadier()
-        if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) commandManager.registerAsynchronousCompletions()
-        brigManager = commandManager.brigadierManager()
+            PaperCommandManager.builder().executionCoordinator(ExecutionCoordinator.simpleCoordinator()).buildOnEnable(plugin)
+
+        val brigManager = commandManager.brigadierManager()
         val brigSettings = brigManager.settings()
         brigSettings.set(BrigadierSetting.FORCE_EXECUTABLE, true)
-        listOf(
-            CaptionProvider.constantProvider<CommandSender>(
+        listOf<CaptionProvider<CommandSourceStack>>(
+            CaptionProvider.constantProvider(
                 Caption.of("universes.command.invalid_schematic"),
                 "That schematic is corrupted or invalid!",
             ),
@@ -143,12 +138,7 @@ object Universes {
     /**
      * The command manager.
      */
-    internal lateinit var commandManager: PaperCommandManager<CommandSender>
-
-    /**
-     * The brigadier command manager.
-     */
-    private lateinit var brigManager: CloudBrigadierManager<CommandSender, *>
+    internal lateinit var commandManager: PaperCommandManager<CommandSourceStack>
 }
 
 /**

@@ -49,7 +49,7 @@ internal object UniversesCommand {
 
                         schematic.place(location)
 
-                        ctx.sender().sendMessage(
+                        ctx.sender().sender.sendMessage(
                             text(
                                 "Schematic placed at ${location.x.roundToInt()}, ${location.y.roundToInt()}, ${location.z.roundToInt()}!",
                                 GREEN,
@@ -69,7 +69,7 @@ internal object UniversesCommand {
                     handler { ctx ->
                         val schematic = ctx.get<Schematic>("schematics")
                         if (!SchematicManager.schematics.containsValue(schematic)) {
-                            ctx.sender().sendMessage(text("That schematic doesn't exist!", RED))
+                            ctx.sender().sender.sendMessage(text("That schematic doesn't exist!", RED))
                             return@handler
                         }
 
@@ -80,7 +80,7 @@ internal object UniversesCommand {
                                 .first(),
                         )
 
-                        ctx.sender().sendMessage(text("Schematic deleted successfully!", GREEN))
+                        ctx.sender().sender.sendMessage(text("Schematic deleted successfully!", GREEN))
                     }
                 }
             }
@@ -93,7 +93,7 @@ internal object UniversesCommand {
                     required("key", NamespacedKeyParser.namespacedKeyParser(true, "universes"))
 
                     handler { ctx ->
-                        val player = ctx.sender() as? Player ?: return@handler
+                        val player = ctx.sender().sender as? Player ?: return@handler
                         if (SelectionManager[player]?.isNotEmpty() == true) {
                             player.sendMessage(text("You are already creating a schematic!", RED))
                             return@handler
@@ -126,7 +126,7 @@ internal object UniversesCommand {
                     permission("universes.command.schematic.save")
 
                     handler { ctx ->
-                        val player = ctx.sender() as? Player ?: return@handler
+                        val player = ctx.sender().sender as? Player ?: return@handler
                         val (selection, handler) =
                             SelectionManager[player]?.first { it.first.type == SelectionType.SCHEMATIC } ?: run {
                                 player.sendMessage(text("You do not have an open selection!", RED))
@@ -176,7 +176,7 @@ internal object UniversesCommand {
                     required("key", NamespacedKeyParser.namespacedKeyParser(true, "universes"))
 
                     handler { ctx ->
-                        val player = ctx.sender() as? Player ?: return@handler
+                        val player = ctx.sender().sender as? Player ?: return@handler
                         val key = ctx.get<NamespacedKey>("key")
                         if (SelectionManager[player]?.any { it.first.type == SelectionType.REGION && it.first.key == key } == true) {
                             player.sendMessage(text("A region with that name already exists!", RED))
@@ -213,7 +213,7 @@ internal object UniversesCommand {
                     required("key", NamespacedKeyParser.namespacedKeyParser(true, "universes"))
 
                     handler { ctx ->
-                        val player = ctx.sender() as? Player ?: return@handler
+                        val player = ctx.sender().sender as? Player ?: return@handler
                         val key = ctx.get<NamespacedKey>("key")
                         if (SelectionManager[player]?.any { it.first.type == SelectionType.MARKER && it.first.key == key } == true) {
                             player.sendMessage(text("A marker with that name already exists!", RED))
@@ -250,7 +250,7 @@ internal object UniversesCommand {
                         permission("universes.command.schematic.selection.finish")
 
                         handler { ctx ->
-                            val player = ctx.sender() as? Player ?: return@handler
+                            val player = ctx.sender().sender as? Player ?: return@handler
                             val (selection, handler) =
                                 SelectionManager[player]?.last { !it.first.finished } ?: run {
                                     player.sendMessage(text("You do not have an open selection!", RED))
@@ -279,7 +279,7 @@ internal object UniversesCommand {
                         required("element", SchematicElementParser.schematicElementParser())
 
                         handler { ctx ->
-                            val player = ctx.sender() as? Player ?: return@handler
+                            val player = ctx.sender().sender as? Player ?: return@handler
                             val elementKey = ctx.get<NamespacedKey>("element")
                             val (selection, handler) = SelectionManager[player]!!.find { it.first.key == elementKey }!!
 
@@ -309,7 +309,7 @@ internal object UniversesCommand {
                             required("string", StringParser.greedyStringParser())
 
                             handler { ctx ->
-                                val player = ctx.sender() as? Player ?: return@handler
+                                val player = ctx.sender().sender as? Player ?: return@handler
                                 val elementKey = ctx.get<NamespacedKey>("element")
                                 val dataKey = ctx.get<NamespacedKey>("data-key")
                                 val string = ctx.get<String>("string")
@@ -342,7 +342,7 @@ internal object UniversesCommand {
                             required("int", IntegerParser.integerParser())
 
                             handler { ctx ->
-                                val player = ctx.sender() as? Player ?: return@handler
+                                val player = ctx.sender().sender as? Player ?: return@handler
                                 val elementKey = ctx.get<NamespacedKey>("element")
                                 val dataKey = ctx.get<NamespacedKey>("data-key")
                                 val int = ctx.get<Int>("int")
@@ -375,7 +375,7 @@ internal object UniversesCommand {
                             required("bool", BooleanParser.booleanParser(true))
 
                             handler { ctx ->
-                                val player = ctx.sender() as? Player ?: return@handler
+                                val player = ctx.sender().sender as? Player ?: return@handler
                                 val elementKey = ctx.get<NamespacedKey>("element")
                                 val dataKey = ctx.get<NamespacedKey>("data-key")
                                 val bool = ctx.get<Boolean>("bool")
@@ -404,7 +404,7 @@ internal object UniversesCommand {
                     required("schematic", SchematicParser.schematicParser())
 
                     handler { ctx ->
-                        val player = ctx.sender() as? Player ?: return@handler
+                        val player = ctx.sender().sender as? Player ?: return@handler
                         val schematic = ctx.get<Schematic>("schematic")
 
                         if (SelectionManager[player]?.isNotEmpty() == true) {

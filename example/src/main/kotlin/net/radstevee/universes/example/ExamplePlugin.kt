@@ -51,5 +51,6 @@ class ExamplePlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
+        Universes.disable()
     }
 }
